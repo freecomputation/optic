@@ -1,11 +1,11 @@
 {
   "format": "optic-components/0",
-  "synced_at": "2026-11-09T22:15:52Z",
+  "synced_at": "2026-11-09T22:47:28Z",
   "components": {
     "idem": {
       "repo": "freecomputation/idem",
-      "commit": "b0ccc874ac8436ec7c51419b8a4c4274c000604d",
-      "files": 29,
+      "commit": "4b4d0325ab38982004c49385c0618012cd0c1a27",
+      "files": 33,
       "excluded": []
     },
     "umiak": {
