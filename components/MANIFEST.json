@@ -1,10 +1,10 @@
 {
   "format": "optic-components/0",
-  "synced_at": "2026-11-09T22:47:28Z",
+  "synced_at": "2026-11-09T23:57:20Z",
   "components": {
     "idem": {
       "repo": "freecomputation/idem",
-      "commit": "4b4d0325ab38982004c49385c0618012cd0c1a27",
+      "commit": "ad781ea1744c518c6eecc52c3595377cc085e362",
       "files": 33,
       "excluded": []
     },
@@ -22,7 +22,7 @@
     },
     "pisuk": {
       "repo": "freecomputation/pisuk",
-      "commit": "e0b950db1fc5e5b50630f7714784926cc839e6a6",
+      "commit": "965d20f171d10046cbd36a96b0e57b4590612f65",
       "files": 8,
       "excluded": []
     }
