@@ -36,6 +36,33 @@ channels the mirror uses; the sync skips it and the manifest
 names it under "excluded", so every omission is a record rather
 than a silence.
 
+## The window, v0
+
+The optic binary is the single window. A world is a directory:
+docs/ holds the living documents as plain text, and chain.jsonl
+is the phylogeny - an append-only, hash-chained record of every
+edit, in the shape of idem's edition log. "optic seed" founds a
+world, "optic view" shows it, "optic update" molds a document
+with new text taken from stdin, "optic log" prints the verified
+phylogeny, and "optic compose" draws a picture composed from
+the chain's own numbers - bars of edit counts, graphics as a
+rendering of text, never an attachment.
+
+Every view verifies before it shows. The chain must hash
+unbroken from GENESIS, and every document's current bytes must
+answer to the hash its latest edit committed. Proven in the
+first battery: a world copied whole to a new path views
+identically; a document touched outside the window is refused
+with both hashes named; a rewritten chain entry is refused at
+its line.
+
+The grain of v0 is the document: a document is the individual
+that is viewed, molded, and chained. The design's recommended
+grain for the governed generations ahead is the derivation,
+which already carries a receipt and a gate; that is v1's work,
+when the system begins proposing its own mutations through the
+broker.
+
 ## License
 
 AGPL-3.0.
