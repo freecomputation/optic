@@ -1,0 +1,9 @@
+[package]
+name = "umiak-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "The Shelf: discovery and reading of the offline library aboard."
+
+[dependencies]
+zim-ffi = { path = "../zim-ffi" }
