@@ -41,11 +41,26 @@ to a different path and run again: result 42, fuel used 2 -
 identical, as the acceptance test demands. One byte flipped in
 the copied runner and the shell refused, naming both hashes.
 
-That is two paths on one machine, not yet two machines: the
-honest remainder of v0 is the same walk between the owner's real
-hosts, which needs his machines. Nothing in the mechanism is
-path-shaped, so nothing in it should change when the path becomes
-a different computer.
+That was two paths on one machine. The two-machine walk has
+since been run, on 2026-11-09, between the development machine
+and the owner's EliteDesk 800 G1 running Fedora 45. Each host
+built the whole stack from these repositories, sealed its own
+kit, and grew the answer component into its own store: the
+object hash was 90a4cec0 on both hosts, because the store holds
+content, not builds. The stores then crossed. The G1's store,
+carried to the first machine and run by its kit: result 42, fuel
+used 2. The first machine's store, carried to the G1 and run by
+its kit: result 42, fuel used 2. Same store, any two hosts, same
+result and same fuel - the acceptance test, met on real
+hardware, in both directions.
+
+One boundary the walk measured honestly: the kits themselves
+differ between the hosts. Fedora's rustc and the other machine's
+rustc are both numbered 1.99.1 and are different builds of it,
+and their binaries hash differently; a kit is sealed from one
+toolchain's builds and verifies against those. What walks
+unchanged is the store - which is the part the harness exists to
+carry.
 
 ## License
 
