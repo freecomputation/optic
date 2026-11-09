@@ -57,11 +57,34 @@ with both hashes named; a rewritten chain entry is refused at
 its line.
 
 The grain of v0 is the document: a document is the individual
-that is viewed, molded, and chained. The design's recommended
-grain for the governed generations ahead is the derivation,
-which already carries a receipt and a gate; that is v1's work,
-when the system begins proposing its own mutations through the
-broker.
+that is viewed, molded, and chained.
+
+## Directed evolution, v1
+
+Evolution in Optic is directed: nothing mutates behind the
+owner's back. "optic propose" files a mutation in the chain as
+a proposal - the proposed text stored by its hash under
+proposals/, the document itself untouched. "optic mutate" is
+the world proposing its own variation: one of three small
+operators (rotate the paragraphs, echo the first line, trim the
+last paragraph), chosen deterministically from the document's
+head hash and the chain head, so the same world always proposes
+the same mutation. "optic keep" applies a proposal as a kept
+edit that names the proposal it came from; "optic discard"
+refuses it, and the refusal stays in the chain as a fossil.
+Double resolution is refused. A proposal whose stored text has
+been touched outside the window cannot be kept.
+
+"optic graft" is the islands meeting: another world's documents
+are offered to this one as proposals, whole-document states
+through the same keep and discard gate - identical documents
+are noted and not offered. Cross-pollination therefore enters
+under the owner's hand, and both phylogenies record it. Textual
+merging of diverged documents is deliberately not attempted;
+the owner molds the kept state afterward if the graft needs it.
+
+v0 chains still verify: a chain whose entries predate kinds is
+read under its own body shape, never re-hashed under new rules.
 
 ## License
 
