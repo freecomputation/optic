@@ -83,8 +83,25 @@ under the owner's hand, and both phylogenies record it. Textual
 merging of diverged documents is deliberately not attempted;
 the owner molds the kept state afterward if the graft needs it.
 
-v0 chains still verify: a chain whose entries predate kinds is
-read under its own body shape, never re-hashed under new rules.
+v0 chains still verify: legacy is judged per entry, from its
+own line, so a v0 world keeps growing under new code and every
+entry verifies under the shape it was written with - never
+re-hashed under new rules.
+
+## Witnessed chains, v2
+
+A world's phylogeny can be co-signed, the way idem's edition
+log is. "optic keygen" writes an Ed25519 key in the house
+format (the loader also reads idem grower keys, so one key can
+witness both systems). "optic witness" signs the current chain
+head - the signed body is domain-separated, optic-witness, so
+neither system's signatures can be replayed as the other's -
+and appends the witness as its own line in chain.jsonl, where
+it names exactly the head it stands over. Verification checks
+every witness at its position: a witness line moved to stand
+over a different head is refused, and a forged signature is
+refused at its line. Witnessing the same head twice with the
+same key appends nothing.
 
 ## License
 
