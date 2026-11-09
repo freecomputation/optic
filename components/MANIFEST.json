@@ -1,0 +1,30 @@
+{
+  "format": "optic-components/0",
+  "synced_at": "2026-11-09T22:15:52Z",
+  "components": {
+    "idem": {
+      "repo": "freecomputation/idem",
+      "commit": "b0ccc874ac8436ec7c51419b8a4c4274c000604d",
+      "files": 29,
+      "excluded": []
+    },
+    "umiak": {
+      "repo": "freecomputation/umiak",
+      "commit": "b14c5564c611643251f04046211b4ae933c851b4",
+      "files": 34,
+      "excluded": []
+    },
+    "siuti": {
+      "repo": "freecomputation/siuti",
+      "commit": "f0581fb07289ac3480505ed4f0460e8c6ada2318",
+      "files": 40,
+      "excluded": []
+    },
+    "pisuk": {
+      "repo": "freecomputation/pisuk",
+      "commit": "e0b950db1fc5e5b50630f7714784926cc839e6a6",
+      "files": 8,
+      "excluded": []
+    }
+  }
+}

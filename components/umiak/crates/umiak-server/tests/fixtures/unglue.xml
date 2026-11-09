@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed>
+<entry>
+ <title>
+  Lagos__2060
+ </title>
+ <id>
+  https://unglue.it/api/id/work/128685/
+ </id>
+ <updated>
+  2026-10-21T14:00:06
+ </updated>
+ <link dcterms:rights="CC BY-NC-ND" href="https://unglue.it/download_ebook/779416/?feed=opds" rel="http://opds-spec.org/acquisition/open-access" type="application/epub+zip"/>
+ <link href="https://files.unglue.it/cache/0b/e1/0be1d5e1ff3197234f556f48e0f790e6.jpg" rel="http://opds-spec.org/image/thumbnail" type="image/jpeg"/>
+ <link href="https://files.unglue.it/cache/dc/ca/dcca80014b7cf6e361664cdab5004baf.jpg" rel="http://opds-spec.org/image" type="image/jpeg"/>
+ <dcterms:issued>
+  2013
+ </dcterms:issued>
+ <author>
+  <name>
+   Afolabi Muheez Ashiru
+  </name>
+ </author>
+ <dcterms:language>
+  en
+ </dcterms:language>
+ <content type="html">
+  EXCITING SCI-FI STORIES FROM NIGERIA
+Curated by Ayodele Arigbabu
+
+Authors: Afolabi Muheez Ashiru. Okey Egboluche.
+Chiagozie Fred Nwonwu. Kofo Akib.
+Ayodele Arigbabu. Adebola Rayo. Terh Agbedeh.
+Temitayo Olofinlua.
+ </content>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9789789344116
+ </dcterms:identifier>
+ <schema:Rating schema:ratingValue="5">
+ </schema:Rating>
+</entry></feed>
