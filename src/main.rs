@@ -688,7 +688,7 @@ fn cmd_compose(world: &Path) {
     );
 }
 
-const FOUNDING_DESKTOP: &str = "the-window\n\nThe desktop is this text. Edit it and the field changes.\nGraphics are compositions from simple draw lines.\n\ncolor #3366cc\ndraw circle 200 160 60\ncolor #cc6633\ndraw rect 340 100 120 80\ncolor #222222\ndraw line 40 300 560 300\ndraw text 40 385 the desktop is text\nset r 40\ncolor #228844\ndraw circle 500 220 $r\n";
+const FOUNDING_DESKTOP: &str = "";
 
 fn html_escape(text: &str) -> String {
     text.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;")
