@@ -202,7 +202,7 @@ class UnavailableRunner(FakeRunner):
         raise AssertionError("an unavailable runner must never be granted")
 
 
-def make_mixed_scheduler(store, data_dir, clock, calls, unavailable_names):
+def make_mixed_scheduler(store, data_dir, clock, calls, unavailable_names, **kwargs):
     def factory(name):
         if name in unavailable_names:
             return UnavailableRunner(name, calls)
@@ -214,6 +214,7 @@ def make_mixed_scheduler(store, data_dir, clock, calls, unavailable_names):
         clock=clock,
         sleeper=clock.advance,
         runner_factory=factory,
+        **kwargs,
     )
 
 
@@ -261,3 +262,17 @@ def test_all_unavailable_grants_nothing_and_sleeps(store, data_dir):
     logged = grants(data_dir)
     assert len(logged) == 2
     assert all("unavailable" in entry for entry in logged)
+
+
+def test_live_output_announces_grants_skips_and_events(store, data_dir):
+    clock = FakeClock()
+    calls = []
+    lines = []
+    scheduler = make_mixed_scheduler(
+        store, data_dir, clock, calls, {"readsb"}, announce=lines.append
+    )
+    scheduler.run(plan_top_and_lower(), once=True)
+    assert any(line.startswith("skip - readsb") for line in lines)
+    assert any(line.startswith("listening - rtl_433 at 433.92 MHz")
+               for line in lines)
+    assert any(" rtl_433 test " in f" {line} " for line in lines)
