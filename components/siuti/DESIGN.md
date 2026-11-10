@@ -64,6 +64,7 @@ Recommended core language: Python, one readable codebase, standard library first
 Siuti invents no decoders. The free software world already maintains excellent ones, and Siuti's work is the scheduling, the store, and the gate - the same division of labour as Umiak, whose work is the browser and the curation, not re-scraping the world. Each decoder below is free and open source, runs fully offline, and is shelved as an edition with a receipt before it runs:
 
 - Aircraft: readsb for ADS-B at 1090 MHz - positions, identities, velocities, the sky written as events.
+- Aircraft voice: RTLSDR-Airband on the 118-137 MHz airband - every channel inside one tuned slice demodulated at once; each transmission is kept as a clip and logged as a voice event naming its channel. Siuti does not transcribe and never guesses who spoke.
 - Sensors and the house: rtl_433 at 433 and 915 MHz - weather stations, tyre sensors, utility meters, the machine chatter of a neighbourhood.
 - Aircraft voice data links: acarsdec and dumpvdl2 for ACARS and VDL2.
 - Weather satellites: SatDump for Meteor-M LRPT at 137 MHz, decoded to images - scheduled by pass prediction, the scheduler's proving ground. (NOAA APT is gone: NOAA-15, 18 and 19 were decommissioned in the summer of 2025. The design carries no dead capability.)

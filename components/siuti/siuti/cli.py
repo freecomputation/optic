@@ -165,6 +165,8 @@ def cmd_listen(args) -> int:
         freq_hz=args.freq,
         simulate=args.simulate,
         watch_dir=Path(config["hf_watch_dir"]) if config.get("hf_watch_dir") else None,
+        airband_channels=config.get("airband_channels"),
+        airband_live=bool(config.get("airband_live", False)),
         base_time=datetime.now(timezone.utc) if args.simulate else None,
     )
 

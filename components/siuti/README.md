@@ -65,6 +65,7 @@ on:
 ```sh
 sudo apt install rtl-sdr rtl-433 multimon-ng      # tools, sensors, pagers
 # readsb:     build from github.com/wiedehopf/readsb (ADS-B)
+# rtl_airband: build from github.com/charlie-foxtrot/RTLSDR-Airband (airband voice)
 # dumpvdl2:   build from github.com/szpajder/dumpvdl2 (VDL2, needs libacars)
 # acarsdec:   build from github.com/f00b4r0/acarsdec (ACARS)
 # AIS-catcher: build from github.com/jvde-github/AIS-catcher (ships)
@@ -107,9 +108,12 @@ siuti capture --freq 137620000 --seconds 10   # a SigMF snippet, as evidence
   (JSON, with a tolerant parser for its classic text output),
   AIS-catcher, multimon-ng (POCSAG + EAS/SAME behind rtl_fm), weather
   radio (presence from demodulated audio energy; SAME headers decoded
-  through multimon-ng when present), SatDump (Meteor-M LRPT products),
-  and HF (an honest file-watch over WSJT-X ALL.TXT logs - Siuti does
-  not decode FT8 itself).
+  through multimon-ng when present), airband voice (RTLSDR-Airband
+  demodulates every channel inside one tuned slice at once; each
+  transmission is kept as an MP3 clip under `run/airband/clips` and
+  logged as a voice event naming its channel), SatDump (Meteor-M
+  LRPT products), and HF (an honest file-watch over WSJT-X ALL.TXT
+  logs - Siuti does not decode FT8 itself).
 - **Event store** (`siuti/store.py`) - the product. Events are one
   JSON object per line in `events/YYYY-MM-DD.jsonl`, append-only.
   A sqlite index is grown from the JSONL for fast queries and is
