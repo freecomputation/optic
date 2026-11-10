@@ -9,6 +9,41 @@ compose into larger ones without changing hands. That is the
 system. Free Computation is who we are. Optic is what we are
 building.
 
+## The window manager - the-window
+
+Optic is the window manager itself. It is not a window inside a
+desktop. It is the desktop.
+
+The desktop is one white field with a slight blue aura, behaving
+like a text editor. Its document is desktop.txt in a world, and
+the field is programmable on the spot: a line of text can set a
+variable, set a color, clear the field, or draw a shape, and the
+canvas re-renders on every keystroke. Graphics are compositions
+from simple draw text - draw circle, draw rect, draw line, and
+draw text - never attachments.
+
+Refresh reloads the environment from the chain. Reset returns
+to the founding document, applying the founding desktop text
+again through the chain. Apply saves the current text through
+the chain as a kept edit. The window command serves this field
+locally and refuses a world that fails verification.
+
+The system prose uses explicit names that say what each part
+does. The codenames remain only as repo handles where an address
+is needed, because repo slugs are addresses and do not change.
+
+- the-window - Optic itself, the window manager and the desktop.
+
+- grow-system - idem, repo handle freecomputation/idem.
+
+- keep-files - Umiak, repo handle freecomputation/umiak.
+
+- hear-signals - Siuti, repo handle freecomputation/siuti.
+
+- carry-system - Pisuk, repo handle freecomputation/pisuk.
+
+- reflect-code - Tarraq, repo handle freecomputation/tarraq.
+
 ## The substance
 
 The system's substance is text. A computer's logical processes
@@ -78,14 +113,17 @@ existed.
 
 Optic is the total; its components are optics at deeper focus.
 
-- idem is the substrate: the grower, the broker, the runner, the
-editions - the physics the world runs on, and its law that a
-system applied to itself must return itself.
-- Umiak is the shelf: the world's cargo of books and maps,
-carried aboard and fully usable with no connection.
-- Siuti is the ear: the world's sense for the signals around it.
-- Pisuk is the harness: the world walking from host to host,
-executed locally everywhere, identical everywhere.
+- grow-system - idem is the substrate: the grower, the broker,
+the runner, the editions - the physics the world runs on, and
+its law that a system applied to itself must return itself.
+- keep-files - Umiak is the shelf: the world's cargo of books
+and maps, carried aboard and fully usable with no connection.
+- hear-signals - Siuti is the ear: the world's sense for the
+signals around it.
+- carry-system - Pisuk is the harness: the world walking from
+host to host, executed locally everywhere, identical everywhere.
+- reflect-code - Tarraq is the living layer: the evaluator that
+reflects on code and evaluates its own text.
 
 ## The acceptance test
 

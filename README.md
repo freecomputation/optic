@@ -10,13 +10,16 @@ This repository is the total. The components live in their own
 repositories and are mirrored into components/ here, so the
 whole system can be read, carried, and grown in one place:
 
-- components/idem - the substrate: the grower, the broker, the
-runner, the editions, from freecomputation/idem.
-- components/umiak - the browser and its shelf, from
+- components/idem - grow-system: the substrate, the grower, the
+broker, the runner, the editions, from freecomputation/idem.
+- components/umiak - keep-files: the browser and its shelf, from
 freecomputation/umiak.
-- components/siuti - the signals ear, from freecomputation/siuti.
-- components/pisuk - the walking harness, from
+- components/siuti - hear-signals: the signals ear, from
+freecomputation/siuti.
+- components/pisuk - carry-system: the walking harness, from
 freecomputation/pisuk.
+- components/tarraq - reflect-code: the self-reflecting
+evaluator, from freecomputation/tarraq.
 
 ## How the mirror stays current
 
@@ -35,6 +38,66 @@ bytes are not valid UTF-8 cannot travel through the text
 channels the mirror uses; the sync skips it and the manifest
 names it under "excluded", so every omission is a record rather
 than a silence.
+
+## The window manager - the-window
+
+Optic is the window manager itself. It is not a window inside a
+desktop. It is the desktop.
+
+- the-window - Optic itself: the window manager and the desktop,
+one white field with a slight blue aura, behaving like a text
+editor.
+
+- grow-system - idem, the repo handle freecomputation/idem: the
+substrate that grows the system from material aboard.
+
+- keep-files - Umiak, the repo handle freecomputation/umiak: the
+browser and shelf that keep files aboard and usable offline.
+
+- hear-signals - Siuti, the repo handle freecomputation/siuti:
+the ear that hears radio signals and records them as events.
+
+- carry-system - Pisuk, the repo handle freecomputation/pisuk:
+the harness that carries the system from host to host unchanged.
+
+- reflect-code - Tarraq, the repo handle freecomputation/tarraq:
+the evaluator that reflects on code, evaluating its own text.
+
+The desktop is one document, desktop.txt in a world. Run it with
+"optic window <world>" and open the local address it prints, by
+default on port 27340. The surface is a full white field with a
+slight blue aura at the edges, a canvas, and the desktop text over
+it. Nothing else is on the surface except three plain controls at
+the bottom: Apply, Refresh, and Reset.
+
+The environment is programmable on the spot. A line in the text
+can set a variable, set a color, clear the field, or draw, and
+the canvas re-renders on every keystroke as the text changes.
+
+- set <name> <number> - a variable usable as $<name> in numeric
+positions in later lines.
+
+- color <css-color> - the stroke and fill for following draws.
+
+- clear - clears the canvas at that point in the text.
+
+- draw circle <x> <y> <r> - a circle composed from text.
+
+- draw rect <x> <y> <w> <h> - a rectangle composed from text.
+
+- draw line <x1> <y1> <x2> <y2> - a line composed from text.
+
+- draw text <x> <y> <words...> - words composed from text.
+
+Graphics are compositions from simple draw text. They are never
+attachments. Any other line is plain editor text and draws
+nothing.
+
+Apply saves the editor text as desktop.txt through the chain, so
+the change is a kept edit. Refresh reloads the editor from the
+chain, from GET /api/text. Reset returns to the founding
+document, applying the founding desktop text again through the
+chain. A world that fails verification is refused and not served.
 
 ## The window, v0
 

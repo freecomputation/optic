@@ -22,6 +22,7 @@
 //   optic log <world>               the phylogeny, verified
 //   optic compose <world>           a picture composed from the text
 //   optic graft <world> <other>     another world offers its documents
+//   optic window <world> [--port N] the-window: the desktop itself, served locally
 //   optic keygen <key-file>         make a witnessing key
 //   optic witness <world> <key>     an independent key co-signs the chain head
 //
@@ -39,7 +40,8 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
-use std::io::Read;
+use std::io::{Read, Write};
+use std::net::TcpListener;
 use std::path::{Path, PathBuf};
 use std::process::exit;
 
@@ -686,6 +688,178 @@ fn cmd_compose(world: &Path) {
     );
 }
 
+const FOUNDING_DESKTOP: &str = "the-window\n\nThe desktop is this text. Edit it and the field changes.\nGraphics are compositions from simple draw lines.\n\ncolor #3366cc\ndraw circle 200 160 60\ncolor #cc6633\ndraw rect 340 100 120 80\ncolor #222222\ndraw line 40 300 560 300\ndraw text 40 40 the desktop is text\nset r 40\ncolor #228844\ndraw circle 500 220 $r\n";
+
+fn html_escape(text: &str) -> String {
+    text.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;")
+}
+
+fn window_page(desktop_text: &str) -> String {
+    let initial = html_escape(desktop_text);
+    format!(r##"<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>the-window</title>
+<style>
+html, body {{ margin: 0; padding: 0; height: 100%; background: #ffffff; }}
+#field {{ position: fixed; inset: 0; background: #ffffff; box-shadow: inset 0 0 120px rgba(80, 140, 255, 0.38), inset 0 0 24px rgba(80, 140, 255, 0.28); }}
+#canvas {{ position: absolute; inset: 0; width: 100%; height: 100%; }}
+#editor {{ position: absolute; inset: 0; width: 100%; height: 100%; box-sizing: border-box; padding: 18px 18px 64px 18px; border: 0; outline: none; resize: none; background: transparent; color: rgba(20, 20, 30, 0.88); font: 15px/1.5 monospace; }}
+#controls {{ position: fixed; left: 0; right: 0; bottom: 0; padding: 10px 14px; background: rgba(255,255,255,0.85); }}
+#controls button {{ font: 13px monospace; padding: 4px 12px; margin-right: 8px; }}
+</style>
+</head>
+<body>
+<div id="field">
+<canvas id="canvas"></canvas>
+<textarea id="editor" spellcheck="false">{initial}</textarea>
+</div>
+<div id="controls"><button id="apply">Apply</button><button id="refresh">Refresh</button><button id="reset">Reset</button></div>
+<script>
+const editor = document.getElementById("editor");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+function resize() {{ canvas.width = window.innerWidth; canvas.height = window.innerHeight; render(); }}
+window.addEventListener("resize", resize);
+function render() {{
+  const vars = {{}};
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = "#222222"; ctx.fillStyle = "#222222"; ctx.lineWidth = 2;
+  function num(tok) {{
+    if (tok && tok.charAt(0) === "$") return vars[tok.slice(1)] || 0;
+    return parseFloat(tok) || 0;
+  }}
+  const lines = editor.value.split("\n");
+  for (const raw of lines) {{
+    const parts = raw.trim().split(/\s+/).filter(function (p) {{ return p.length > 0; }});
+    if (parts.length === 0) continue;
+    if (parts[0] === "set" && parts.length >= 3) {{ vars[parts[1]] = parseFloat(parts[2]) || 0; continue; }}
+    if (parts[0] === "color" && parts.length >= 2) {{ ctx.strokeStyle = parts[1]; ctx.fillStyle = parts[1]; continue; }}
+    if (parts[0] === "clear") {{ ctx.clearRect(0, 0, canvas.width, canvas.height); continue; }}
+    if (parts[0] !== "draw") continue;
+    const kind = parts[1];
+    if (kind === "circle" && parts.length >= 5) {{
+      ctx.beginPath(); ctx.arc(num(parts[2]), num(parts[3]), num(parts[4]), 0, Math.PI * 2); ctx.stroke();
+    }} else if (kind === "rect" && parts.length >= 6) {{
+      ctx.strokeRect(num(parts[2]), num(parts[3]), num(parts[4]), num(parts[5]));
+    }} else if (kind === "line" && parts.length >= 6) {{
+      ctx.beginPath(); ctx.moveTo(num(parts[2]), num(parts[3])); ctx.lineTo(num(parts[4]), num(parts[5])); ctx.stroke();
+    }} else if (kind === "text" && parts.length >= 5) {{
+      ctx.font = "16px monospace"; ctx.fillText(parts.slice(4).join(" "), num(parts[2]), num(parts[3]));
+    }}
+  }}
+}}
+editor.addEventListener("input", render);
+async function refresh() {{
+  const res = await fetch("/api/text"); editor.value = await res.text(); render();
+}}
+document.getElementById("refresh").addEventListener("click", refresh);
+document.getElementById("apply").addEventListener("click", async function () {{
+  await fetch("/api/apply", {{ method: "POST", body: editor.value }});
+}});
+document.getElementById("reset").addEventListener("click", async function () {{
+  const res = await fetch("/api/reset", {{ method: "POST" }}); editor.value = await res.text(); render();
+}});
+resize(); render();
+</script>
+</body>
+</html>
+"##)
+}
+
+fn http_send(stream: &mut std::net::TcpStream, status: &str, content_type: &str, body: &[u8]) {
+    let head = format!("HTTP/1.1 {status}\r\nContent-Type: {content_type}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n", body.len());
+    let _ = stream.write_all(head.as_bytes());
+    let _ = stream.write_all(body);
+    let _ = stream.flush();
+}
+
+fn desktop_text(world: &Path) -> String {
+    let (_, texts) = verified_world(world);
+    texts.get("desktop.txt").cloned().unwrap_or_else(|| FOUNDING_DESKTOP.to_string())
+}
+
+fn ensure_desktop(world: &Path) {
+    let (_, texts) = verified_world(world);
+    if !texts.contains_key("desktop.txt") {
+        apply_edit(world, "desktop.txt", FOUNDING_DESKTOP, None);
+        println!("- desktop.txt founded for the-window");
+    }
+}
+
+fn handle_window(stream: &mut std::net::TcpStream, world: &Path) {
+    let mut buf: Vec<u8> = Vec::new();
+    let mut chunk = [0u8; 8192];
+    let header_end: usize;
+    loop {
+        match stream.read(&mut chunk) {
+            Ok(0) => return,
+            Ok(n) => {
+                buf.extend_from_slice(&chunk[..n]);
+                if let Some(pos) = buf.windows(4).position(|w| w == b"\r\n\r\n") { header_end = pos + 4; break; }
+                if buf.len() > 65536 { return; }
+            }
+            Err(_) => return,
+        }
+    }
+    let head = String::from_utf8_lossy(&buf[..header_end]).to_string();
+    let first = head.lines().next().unwrap_or("").to_string();
+    let mut parts = first.split_whitespace();
+    let method = parts.next().unwrap_or("");
+    let route = parts.next().unwrap_or("");
+    let mut content_length: usize = 0;
+    for line in head.lines() {
+        let lower = line.to_ascii_lowercase();
+        if let Some(v) = lower.strip_prefix("content-length:") { content_length = v.trim().parse().unwrap_or(0); }
+    }
+    let mut body: Vec<u8> = buf[header_end..].to_vec();
+    while body.len() < content_length {
+        match stream.read(&mut chunk) {
+            Ok(0) => break,
+            Ok(n) => body.extend_from_slice(&chunk[..n]),
+            Err(_) => break,
+        }
+    }
+    body.truncate(content_length);
+    match (method, route) {
+        ("GET", "/") => {
+            let page = window_page(&desktop_text(world));
+            http_send(stream, "200 OK", "text/html; charset=utf-8", page.as_bytes());
+        }
+        ("GET", "/api/text") => {
+            let text = desktop_text(world);
+            http_send(stream, "200 OK", "text/plain; charset=utf-8", text.as_bytes());
+        }
+        ("POST", "/api/apply") => {
+            let _ = verified_world(world);
+            let text = String::from_utf8_lossy(&body).to_string();
+            apply_edit(world, "desktop.txt", &text, None);
+            http_send(stream, "200 OK", "text/plain; charset=utf-8", b"ok");
+        }
+        ("POST", "/api/reset") => {
+            let _ = verified_world(world);
+            apply_edit(world, "desktop.txt", FOUNDING_DESKTOP, None);
+            http_send(stream, "200 OK", "text/plain; charset=utf-8", FOUNDING_DESKTOP.as_bytes());
+        }
+        _ => http_send(stream, "404 Not Found", "text/plain; charset=utf-8", b"not found"),
+    }
+}
+
+fn cmd_window(world: &Path, port: u16) {
+    if !world.exists() { fail(&format!("no world at {} - seed one first", world.display())); }
+    ensure_desktop(world);
+    let _ = verified_world(world);
+    let listener = TcpListener::bind(("127.0.0.1", port)).unwrap_or_else(|e| fail(&format!("cannot bind port {port}: {e}")));
+    println!("the-window serving {} at http://127.0.0.1:{port}/", world.display());
+    for stream in listener.incoming() {
+        match stream {
+            Ok(mut s) => handle_window(&mut s, world),
+            Err(_) => continue,
+        }
+    }
+}
+
 fn usage() -> ! {
     eprintln!("usage:");
     eprintln!("  optic seed <world>");
@@ -701,6 +875,7 @@ fn usage() -> ! {
     eprintln!("  optic witness <world> <key-file>");
     eprintln!("  optic log <world>");
     eprintln!("  optic compose <world>");
+    eprintln!("  optic window <world> [--port N]");
     exit(2);
 }
 
@@ -748,6 +923,17 @@ fn main() {
         },
         "log" => cmd_log(&world),
         "compose" => cmd_compose(&world),
+        "window" => {
+            let mut port: u16 = 27340;
+            let mut i = 2;
+            while i < args.len() {
+                if args[i] == "--port" {
+                    if let Some(v) = args.get(i + 1).and_then(|s| s.parse().ok()) { port = v; }
+                    i += 2;
+                } else { i += 1; }
+            }
+            cmd_window(&world, port);
+        }
         _ => usage(),
     }
 }
