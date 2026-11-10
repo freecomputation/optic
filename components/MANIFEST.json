@@ -1,34 +1,34 @@
 {
   "format": "optic-components/0",
-  "synced_at": "2026-11-10T01:36:27Z",
+  "synced_at": "2026-11-10T02:18:19Z",
   "components": {
     "idem": {
       "repo": "freecomputation/idem",
-      "commit": "ad781ea1744c518c6eecc52c3595377cc085e362",
+      "commit": "8a8b9075da56351f32cd82e0b8a872edda80f7b3",
       "files": 33,
       "excluded": []
     },
     "umiak": {
       "repo": "freecomputation/umiak",
-      "commit": "b14c5564c611643251f04046211b4ae933c851b4",
+      "commit": "9edf7b312b9b4d25019dec70d4c73c672b577eb4",
       "files": 34,
       "excluded": []
     },
     "siuti": {
       "repo": "freecomputation/siuti",
-      "commit": "f0581fb07289ac3480505ed4f0460e8c6ada2318",
+      "commit": "c1a82b9914f7616ade4ae25952ca21c282364851",
       "files": 40,
       "excluded": []
     },
     "pisuk": {
       "repo": "freecomputation/pisuk",
-      "commit": "965d20f171d10046cbd36a96b0e57b4590612f65",
+      "commit": "311869e03f0ea17e0000fea770188da08605d5b2",
       "files": 8,
       "excluded": []
     },
     "tarraq": {
       "repo": "freecomputation/tarraq",
-      "commit": "59f7b2d649fedbc073ee19cad6c4c089adc3ca50",
+      "commit": "698843e12b5bb24fa58e8b7cb400ba463ea6376f",
       "files": 13,
       "excluded": []
     }

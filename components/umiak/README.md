@@ -12,6 +12,12 @@ shelved.
 
 Umiak is the first form of idem, the system that grows underneath it.
 
+In the system prose of Optic, Umiak is keep-files. The explicit
+name says what it does: it keeps files aboard - books, maps, and
+pages - and keeps them usable with no connection. The codename
+Umiak remains the repo handle, at freecomputation/umiak, because
+a repo slug is an address.
+
 ## Layout
 
 `crates/zim-ffi` - the only C++ in the project: a thin C shim over

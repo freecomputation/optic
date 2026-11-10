@@ -1,4 +1,8 @@
-# Tarraq - design
+# Tarraq - reflect-code - design
+
+In the system prose of Optic, Tarraq is reflect-code: it reflects
+on code, evaluating its own text. Tarraq is the codename and the
+repo handle.
 
 Tarraq is the living layer of Optic: a mutually recursive
 machine, a true Lisp machine in the old sense, rebuilt under

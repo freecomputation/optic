@@ -5,6 +5,11 @@ Inuktitut root pisuk-, "to be walking", and walking is what it
 does: it carries a person's computing from machine to machine, so
 the machine is the harness and not the hardware in front of them.
 
+In the system prose of Optic, Pisuk is carry-system. The explicit
+name says what it does: it carries the system from host to host
+unchanged. The codename Pisuk remains the repo handle, at
+freecomputation/pisuk, because a repo slug is an address.
+
 The design is in DESIGN.md. In one paragraph: three of idem's
 tools - the grower, the broker, the runner - and a
 content-addressed store are carried together as a kit, and a thin
