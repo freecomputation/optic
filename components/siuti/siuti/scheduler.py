@@ -208,7 +208,9 @@ class Scheduler:
         self.stop_event = threading.Event()
         self.grants_path = self.data_dir / "grants.jsonl"
         self._last_block_key: str | None = None
-        self.summary = {"grants": 0, "events": 0, "refused": 0, "pass_overrides": 0}
+        self.summary = {"grants": 0, "events": 0, "refused": 0, "pass_overrides": 0,
+                        "unavailable": 0}
+        self._skipped_unavailable: list = []
 
     # -- grant bookkeeping ---------------------------------------------
 
@@ -223,13 +225,65 @@ class Scheduler:
 
     # -- choice of listener ----------------------------------------------
 
+    def _block_available(self, block: PlanBlock) -> bool:
+        """Can this block's runner actually run on this host right now?
+
+        In simulate mode every runner replays its fixture and needs no
+        binary, so every block is available. Outside simulate, the
+        runner's own available() is the word - a missing binary, an
+        unknown decoder, or a runner that errors while answering all
+        mean the block cannot run and must not be granted.
+        """
+        if self.simulate:
+            return True
+        try:
+            runner = self.runner_factory(block.decoder)
+            available = getattr(runner, "available", None)
+            if not callable(available):
+                return True
+            return bool(available())
+        except Exception:
+            return False
+
+    def _log_unavailable(self, plan: Plan, block: PlanBlock, reason: str,
+                         now: datetime) -> None:
+        hint = ""
+        try:
+            status = self.runner_factory(block.decoder).status()
+            hint = status.get("hint", "") if isinstance(status, dict) else ""
+        except Exception:
+            hint = ""
+        entry = {
+            "ts": iso_at(now),
+            "plan": plan.name,
+            "decoder": block.decoder,
+            "freq_hz": block.freq_hz,
+            "reason": reason,
+            "goes_dark": block.goes_dark,
+            "notes": block.notes,
+            "unavailable": "decoder is not available on this host"
+                           + (f" - {hint}" if hint else ""),
+        }
+        self._log_grant(entry)
+        self.summary["unavailable"] += 1
+
     def _choose_block(self, plan: Plan, now: datetime) -> PlanBlock | None:
         candidates = [
             block for block in plan.blocks
             if block.on == "plan" and block.active_at(now)
         ]
+        self._skipped_unavailable = []
         if not candidates:
             return None
+        runnable = []
+        for block in candidates:
+            if self._block_available(block):
+                runnable.append(block)
+            else:
+                self._skipped_unavailable.append(block)
+        if not runnable:
+            return None
+        candidates = runnable
         top_priority = max(block.priority for block in candidates)
         top = [block for block in candidates if block.priority == top_priority]
         if len(top) == 1:
@@ -322,6 +376,12 @@ class Scheduler:
                 passage.aos - now
             ).total_seconds() <= PASS_LEAD_SECONDS:
                 block = self._pass_block(plan, passage)
+                if not self._block_available(block):
+                    self._log_unavailable(plan, block, "pass-override", now)
+                    self.sleeper(30)
+                    if once or (max_grants is not None and grants_done >= max_grants):
+                        break
+                    continue
                 duration = max(1.0, (passage.los - now).total_seconds())
                 duration = min(duration, 1800.0)
                 self._grant(plan, block, "pass-override", duration, now)
@@ -329,6 +389,8 @@ class Scheduler:
                 grants_done += 1
             else:
                 block = self._choose_block(plan, now)
+                for skipped in self._skipped_unavailable:
+                    self._log_unavailable(plan, skipped, "plan", now)
                 if block is None:
                     self.sleeper(30)
                     if once or (max_grants is not None and grants_done >= max_grants):
