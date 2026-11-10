@@ -1,0 +1,9 @@
+[package]
+name = "zim-ffi"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Thin, isolated Rust FFI over libzim. The only place C++ enters Coffer."
+
+[build-dependencies]
+cc = "1"

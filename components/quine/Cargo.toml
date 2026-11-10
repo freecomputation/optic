@@ -1,0 +1,12 @@
+[package]
+name = "quine"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "quine"
+path = "src/main.rs"
+
+[profile.release]
+debug = false
+incremental = false

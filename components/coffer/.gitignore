@@ -1,0 +1,13 @@
+/target
+/app/src-tauri/target
+/shelf
+/shelf-real
+/third-party/*.deb
+/third-party/libzim-dev/
+*.zim
+*.pmtiles
+
+app/src-tauri/gen/
+app/src-tauri/icons/*.png
+/third-party/libs/
+/third-party/debs/
