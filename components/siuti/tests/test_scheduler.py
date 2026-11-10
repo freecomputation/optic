@@ -29,6 +29,12 @@ class FakeRunner:
         self.name = name
         self.calls = calls
 
+    def available(self):
+        return True
+
+    def status(self):
+        return {"runner": self.name, "available": True, "hint": ""}
+
     def run(self, ctx, emit, stop_event, duration=None):
         self.calls.append((self.name, duration))
         emit(
@@ -180,3 +186,78 @@ def test_verified_edition_stamps_events(store, data_dir, tmp_path):
     scheduler.run(plan, once=True)
     events = store.all_events()
     assert events and events[0]["edition"] == "readsb@2"
+
+
+class UnavailableRunner(FakeRunner):
+    """A runner whose binary is not on this host: never runs, says so."""
+
+    def available(self):
+        return False
+
+    def status(self):
+        return {"runner": self.name, "available": False,
+                "hint": f"install {self.name} first"}
+
+    def run(self, ctx, emit, stop_event, duration=None):
+        raise AssertionError("an unavailable runner must never be granted")
+
+
+def make_mixed_scheduler(store, data_dir, clock, calls, unavailable_names):
+    def factory(name):
+        if name in unavailable_names:
+            return UnavailableRunner(name, calls)
+        return FakeRunner(name, calls)
+
+    return Scheduler(
+        store,
+        data_dir,
+        clock=clock,
+        sleeper=clock.advance,
+        runner_factory=factory,
+    )
+
+
+def plan_top_and_lower():
+    return Plan.from_dict(
+        {
+            "name": "mixed",
+            "blocks": [
+                {"decoder": "readsb", "freq_hz": 1090000000, "dwell_seconds": 60,
+                 "priority": 10, "goes_dark": ["sensors"]},
+                {"decoder": "rtl_433", "freq_hz": 433920000, "dwell_seconds": 60,
+                 "priority": 5, "goes_dark": ["ads-b"]},
+            ],
+        }
+    )
+
+
+def test_top_priority_unavailable_falls_through(store, data_dir):
+    clock = FakeClock()
+    calls = []
+    scheduler = make_mixed_scheduler(store, data_dir, clock, calls, {"readsb"})
+    summary = scheduler.run(plan_top_and_lower(), once=True)
+    assert [name for name, _ in calls] == ["rtl_433"]
+    assert summary["grants"] == 1
+    assert summary["unavailable"] == 1
+    logged = grants(data_dir)
+    unavailable_entries = [e for e in logged if "unavailable" in e]
+    assert len(unavailable_entries) == 1
+    assert unavailable_entries[0]["decoder"] == "readsb"
+    assert "install readsb first" in unavailable_entries[0]["unavailable"]
+
+
+def test_all_unavailable_grants_nothing_and_sleeps(store, data_dir):
+    clock = FakeClock()
+    calls = []
+    scheduler = make_mixed_scheduler(
+        store, data_dir, clock, calls, {"readsb", "rtl_433"}
+    )
+    summary = scheduler.run(plan_top_and_lower(), once=True)
+    assert summary["grants"] == 0
+    assert calls == []
+    assert summary["unavailable"] == 2
+    # the loop took the sleep path exactly once, then honoured once=True
+    assert clock.now == START + timedelta(seconds=30)
+    logged = grants(data_dir)
+    assert len(logged) == 2
+    assert all("unavailable" in entry for entry in logged)
