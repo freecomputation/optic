@@ -36,7 +36,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ORG = "freecomputation"
-COMPONENTS = ["idem", "umiak", "siuti", "pisuk"]
+COMPONENTS = ["idem", "umiak", "siuti", "pisuk", "tarraq"]
 
 
 def run(cmd, cwd=None):
