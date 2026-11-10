@@ -54,6 +54,8 @@ class RunnerContext:
     fixtures_dir: Path = FIXTURES_DIR
     watch_dir: Path | None = None
     sat_pipeline: str | None = None
+    airband_channels: list | None = None
+    airband_live: bool = False
     base_time: datetime | None = None
     _stamp_counter: int = field(default=0, repr=False)
 
@@ -884,6 +886,265 @@ class WxRadioRunner(Runner):
 
 
 # ----------------------------------------------------------------------
+# Airband voice - RTLSDR-Airband
+# ----------------------------------------------------------------------
+
+# The station's channels by default: FAA data as published by AirNav
+# (effective 2026-01-22), researched 2026-11-10 for Goshen, Alabama.
+# Override wholesale with "airband_channels" in config.json - a list
+# of {"freq_hz": ..., "label": ...} - and set "airband_live": true
+# to add a live PulseAudio output on each channel.
+DEFAULT_AIRBAND_CHANNELS = [
+    {"freq_hz": 120_550_000, "label": "Atlanta Center - Montgomery RCAG"},
+    {"freq_hz": 120_675_000, "label": "Montgomery ATIS"},
+    {"freq_hz": 120_925_000, "label": "Troy ATIS"},
+    {"freq_hz": 121_100_000, "label": "Cairns Approach"},
+    {"freq_hz": 121_500_000, "label": "Guard"},
+    {"freq_hz": 121_700_000, "label": "Montgomery Ground"},
+    {"freq_hz": 121_900_000, "label": "Troy Ground"},
+    {"freq_hz": 122_800_000, "label": "CTAF - Troy, Greenville, Enterprise"},
+    {"freq_hz": 123_050_000, "label": "Andalusia CTAF"},
+    {"freq_hz": 124_000_000, "label": "Montgomery Approach"},
+    {"freq_hz": 124_300_000, "label": "Troy Tower"},
+    {"freq_hz": 128_550_000, "label": "Jacksonville Center at Cairns"},
+    {"freq_hz": 132_450_000, "label": "Atlanta Center - Montgomery south"},
+    {"freq_hz": 133_450_000, "label": "Cairns Approach - Goshen sector"},
+    {"freq_hz": 134_300_000, "label": "Jacksonville Center - Dothan RCAG"},
+]
+
+# One dongle slice: rtl_airband demodulates every channel within
+# its tuned bandwidth at once. Channels are grouped by the plan:
+# a block's frequency is the center of a slice, and the channels
+# within this half-width of it are the ones that block hears.
+AIRBAND_HALF_SLICE_HZ = 1_000_000
+
+_CLIP_RE = re.compile(
+    r"^([A-Za-z0-9]+)_(\d{8})_(\d{6})(?:_(\d{8})_(\d{6}))?\.mp3$"
+)
+
+
+def _mhz(freq_hz: int) -> str:
+    text = f"{freq_hz / 1_000_000:.5f}".rstrip("0")
+    return text if "." in text else text + ".0"
+
+
+def _clip_slug(freq_hz: int) -> str:
+    return f"CH{int(freq_hz) // 1000}"
+
+
+class AirbandRunner(Runner):
+    """Pilot and controller voice on the 118-137 MHz airband.
+
+    RTLSDR-Airband demodulates every channel inside one tuned slice
+    at once, so a grant is a slice: the block's frequency is the
+    slice center, and the runner writes an rtl_airband config for
+    the channels that fall inside it (the configured channel list,
+    or the station defaults). Each transmission becomes one MP3
+    clip - rtl_airband splits on transmission - and one voice
+    event names the channel, the label and the clip. The clips
+    live under <data_dir>/run/airband/clips and stay until the
+    owner clears them; the event store is the index of what was
+    heard. Who spoke is what the recording says - a voice event
+    never guesses a speaker.
+
+    With "airband_live" set in config, each channel also gets a
+    PulseAudio output, so the audio plays on the host's speakers
+    while it is being heard.
+    """
+
+    name = "airband"
+    binary = "rtl_airband"
+    mode = "voice"
+    default_freq_hz = 121_200_000
+    fixture_name = None
+    install_hint = ("build RTLSDR-Airband from "
+                    "github.com/charlie-foxtrot/RTLSDR-Airband")
+
+    def status(self) -> dict:
+        state = super().status()
+        state["channels"] = len(DEFAULT_AIRBAND_CHANNELS)
+        return state
+
+    def channels_for(self, ctx: RunnerContext) -> list[dict]:
+        """The channels this grant hears: configured list or the
+        station defaults, narrowed to the block's slice."""
+        center = self.freq(ctx)
+        configured = ctx.airband_channels or DEFAULT_AIRBAND_CHANNELS
+        inside = [
+            ch for ch in configured
+            if abs(int(ch["freq_hz"]) - center) <= AIRBAND_HALF_SLICE_HZ
+        ]
+        if not inside:
+            inside = [{"freq_hz": center, "label": "airband"}]
+        return inside
+
+    def config_text(self, ctx: RunnerContext, channels: list[dict],
+                    clips_dir: Path) -> str:
+        lines = [
+            "# written by siuti for one grant of the tuner",
+            "devices:",
+            "({",
+            '  type = "rtlsdr";',
+            "  index = 0;",
+            "  gain = 38;",
+            f"  centerfreq = {_mhz(self.freq(ctx))};",
+            "  channels:",
+            "  (",
+        ]
+        for channel in channels:
+            freq_hz = int(channel["freq_hz"])
+            lines += [
+                "    {",
+                f"      freq = {_mhz(freq_hz)};",
+                "      outputs: (",
+                "        {",
+                '          type = "file";',
+                f'          directory = "{clips_dir}";',
+                f'          filename_template = "{_clip_slug(freq_hz)}";',
+                "          split_on_transmission = true;",
+                "          split_tx_drop_shorter_than = 0.3;",
+                "        }" + ("," if ctx.airband_live else ""),
+            ]
+            if ctx.airband_live:
+                lines += [
+                    "        {",
+                    '          type = "pulse";',
+                    f'          name = "siuti {channel["label"]}";',
+                    "        }",
+                ]
+            lines += ["      );", "    },"] 
+        lines += ["  );", " }", ");", ""]
+        return "\n".join(lines)
+
+    @staticmethod
+    def parse_clip_name(name: str):
+        """(slug, started-local-datetime) for a transmission clip."""
+        match = _CLIP_RE.match(name)
+        if not match:
+            return None
+        date, clock = match.group(2), match.group(3)
+        try:
+            started = datetime.strptime(date + clock, "%Y%m%d%H%M%S")
+        except ValueError:
+            return None
+        return match.group(1), started
+
+    def _clip_event(self, ctx: RunnerContext, path: Path,
+                    channels: list[dict]) -> Event | None:
+        parsed = self.parse_clip_name(path.name)
+        if parsed is None:
+            return None
+        slug, started = parsed
+        channel = next(
+            (ch for ch in channels if _clip_slug(int(ch["freq_hz"])) == slug),
+            None,
+        )
+        freq_hz = int(channel["freq_hz"]) if channel else self.freq(ctx)
+        label = channel["label"] if channel else "airband"
+        ts = started.astimezone(timezone.utc).isoformat()
+        return make_event(
+            mode="voice",
+            decoder=self.name,
+            edition=ctx.edition,
+            freq_hz=freq_hz,
+            payload={
+                "label": label,
+                "clip": str(path),
+                "bytes": path.stat().st_size,
+                "started_local": started.isoformat(),
+            },
+            ts=ts,
+        )
+
+    def fixture_events(self, ctx: RunnerContext) -> list[Event]:
+        channels = self.channels_for(ctx)
+        events = []
+        for channel in channels[:3]:
+            events.append(
+                make_event(
+                    mode="voice",
+                    decoder=self.name,
+                    edition=ctx.edition,
+                    freq_hz=int(channel["freq_hz"]),
+                    payload={
+                        "label": channel["label"],
+                        "clip": None,
+                        "note": ("simulated transmission event - "
+                                 "no audio was received"),
+                    },
+                    ts=ctx.stamp(),
+                )
+            )
+        return events
+
+    def run(self, ctx: RunnerContext, emit, stop_event: threading.Event,
+            duration: float | None = None) -> dict:
+        if ctx.simulate:
+            count = 0
+            for event in self.fixture_events(ctx):
+                emit(event)
+                count += 1
+            return {"runner": self.name, "ran": True, "simulated": True,
+                    "events": count}
+        if not self.available():
+            return {"runner": self.name, "ran": False,
+                    "reason": "rtl_airband not found on PATH",
+                    "hint": self.install_hint, "events": 0}
+        channels = self.channels_for(ctx)
+        run_dir = Path(ctx.data_dir) / "run" / "airband"
+        clips_dir = run_dir / "clips"
+        clips_dir.mkdir(parents=True, exist_ok=True)
+        config_path = run_dir / "airband.conf"
+        config_path.write_text(
+            self.config_text(ctx, channels, clips_dir), encoding="utf-8"
+        )
+        argv = [self.binary, "-F", "-e", "-c", str(config_path)]
+        proc = subprocess.Popen(argv, stdout=subprocess.DEVNULL,
+                                stderr=subprocess.DEVNULL)
+        deadline = time.monotonic() + duration if duration else None
+        emitted: set[str] = set()
+        count = 0
+
+        def sweep(final: bool) -> None:
+            nonlocal count
+            for path in sorted(clips_dir.glob("*.mp3")):
+                name = path.name
+                if name in emitted:
+                    continue
+                try:
+                    stat = path.stat()
+                except OSError:
+                    continue
+                if stat.st_size <= 0:
+                    continue
+                # A clip still being written has a fresh mtime; a
+                # transmission is over when its file has been quiet
+                # for a few seconds. The final sweep takes whatever
+                # the grant's end left behind.
+                if not final and (time.time() - stat.st_mtime) < 3.0:
+                    continue
+                event = self._clip_event(ctx, path, channels)
+                if event is not None:
+                    emitted.add(name)
+                    emit(event)
+                    count += 1
+
+        try:
+            while not stop_event.is_set():
+                if deadline is not None and time.monotonic() >= deadline:
+                    break
+                if proc.poll() is not None:
+                    break
+                sweep(final=False)
+                stop_event.wait(1.0)
+        finally:
+            self._stop_all([proc])
+        sweep(final=True)
+        return {"runner": self.name, "ran": True, "events": count,
+                "channels": [int(ch["freq_hz"]) for ch in channels]}
+
+
+# ----------------------------------------------------------------------
 # Weather satellites - SatDump
 # ----------------------------------------------------------------------
 
@@ -1152,6 +1413,7 @@ RUNNERS: dict[str, Runner] = {
         AisRunner(),
         MultimonRunner(),
         WxRadioRunner(),
+        AirbandRunner(),
         SatDumpRunner(),
         HfRunner(),
     )
@@ -1168,6 +1430,7 @@ def get_runner(name: str) -> Runner:
         "ais": AisRunner,
         "multimon": MultimonRunner,
         "wxradio": WxRadioRunner,
+        "airband": AirbandRunner,
         "satdump": SatDumpRunner,
         "hf": HfRunner,
     }.get(name)

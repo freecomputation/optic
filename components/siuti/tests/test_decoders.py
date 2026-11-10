@@ -218,7 +218,69 @@ def test_missing_binary_reports_unavailable():
 
 def test_runner_table_is_complete():
     for name in ("readsb", "rtl_433", "dumpvdl2", "acarsdec", "ais",
-                 "multimon", "wxradio", "satdump", "hf"):
+                 "multimon", "wxradio", "airband", "satdump", "hf"):
         assert get_runner(name).name == name
     statuses = decoders.runner_statuses()
-    assert len(statuses) == 9
+    assert len(statuses) == 10
+
+
+# -- airband --------------------------------------------------------------
+
+from siuti.decoders import AirbandRunner
+
+
+def _airband_ctx(tmp_path, freq_hz):
+    return decoders.RunnerContext(data_dir=tmp_path, freq_hz=freq_hz)
+
+
+def test_airband_slices_hold_the_researched_channels(tmp_path):
+    runner = AirbandRunner()
+    near = runner.channels_for(_airband_ctx(tmp_path, 121_200_000))
+    assert {ch["freq_hz"] for ch in near} == {
+        120_550_000, 120_675_000, 120_925_000, 121_100_000,
+        121_500_000, 121_700_000, 121_900_000,
+    }
+    high = runner.channels_for(_airband_ctx(tmp_path, 133_400_000))
+    assert {ch["freq_hz"] for ch in high} == {
+        132_450_000, 133_450_000, 134_300_000,
+    }
+    fields = runner.channels_for(_airband_ctx(tmp_path, 123_600_000))
+    assert 124_300_000 in {ch["freq_hz"] for ch in fields}
+
+
+def test_airband_config_names_every_channel_in_the_slice(tmp_path):
+    runner = AirbandRunner()
+    ctx = _airband_ctx(tmp_path, 121_200_000)
+    text = runner.config_text(ctx, runner.channels_for(ctx), tmp_path)
+    assert "centerfreq = 121.2;" in text
+    assert "freq = 120.55;" in text
+    assert "freq = 121.5;" in text
+    assert "split_on_transmission = true;" in text
+    assert 'filename_template = "CH120550";' in text
+    assert 'type = "pulse";' not in text
+    live_ctx = _airband_ctx(tmp_path, 121_200_000)
+    live_ctx.airband_live = True
+    live = runner.config_text(live_ctx, runner.channels_for(live_ctx),
+                              tmp_path)
+    assert 'type = "pulse";' in live
+
+
+def test_airband_clip_names_parse(tmp_path):
+    parsed = AirbandRunner.parse_clip_name("CH120550_20261110_113500.mp3")
+    assert parsed is not None
+    slug, started = parsed
+    assert slug == "CH120550"
+    assert (started.hour, started.minute) == (11, 35)
+    part = AirbandRunner.parse_clip_name(
+        "CH120550_20261110_113500_20261110_113601.mp3")
+    assert part is not None and part[0] == "CH120550"
+    assert AirbandRunner.parse_clip_name("aircraft.json") is None
+
+
+def test_airband_simulate_events_are_voice(sim_ctx):
+    sim_ctx.freq_hz = 121_200_000
+    events = AirbandRunner().fixture_events(sim_ctx)
+    assert len(events) == 3
+    assert all(event.mode == "voice" for event in events)
+    assert events[0].payload["label"] == "Atlanta Center - Montgomery RCAG"
+    assert events[0].payload["clip"] is None

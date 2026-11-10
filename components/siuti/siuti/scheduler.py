@@ -409,6 +409,8 @@ class Scheduler:
             watch_dir=(Path(self.config["hf_watch_dir"])
                        if self.config.get("hf_watch_dir") else None),
             sat_pipeline=block.pipeline,
+            airband_channels=self.config.get("airband_channels"),
+            airband_live=bool(self.config.get("airband_live", False)),
             base_time=now if self.simulate else None,
         )
         stop = threading.Event()
