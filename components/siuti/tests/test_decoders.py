@@ -284,3 +284,13 @@ def test_airband_simulate_events_are_voice(sim_ctx):
     assert all(event.mode == "voice" for event in events)
     assert events[0].payload["label"] == "Atlanta Center - Montgomery RCAG"
     assert events[0].payload["clip"] is None
+
+
+def test_airband_squelch_threshold_written_and_overridable(tmp_path):
+    runner = AirbandRunner()
+    ctx = _airband_ctx(tmp_path, 121_200_000)
+    text = runner.config_text(ctx, runner.channels_for(ctx), tmp_path)
+    assert "squelch_snr_threshold = 3.0;" in text
+    ctx.airband_squelch_snr = 6.5
+    text = runner.config_text(ctx, runner.channels_for(ctx), tmp_path)
+    assert "squelch_snr_threshold = 6.5;" in text

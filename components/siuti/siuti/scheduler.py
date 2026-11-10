@@ -411,6 +411,7 @@ class Scheduler:
             sat_pipeline=block.pipeline,
             airband_channels=self.config.get("airband_channels"),
             airband_live=bool(self.config.get("airband_live", False)),
+            airband_squelch_snr=self.config.get("airband_squelch_snr"),
             base_time=now if self.simulate else None,
         )
         stop = threading.Event()
