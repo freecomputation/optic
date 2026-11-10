@@ -949,9 +949,12 @@ class AirbandRunner(Runner):
     heard. Who spoke is what the recording says - a voice event
     never guesses a speaker.
 
-    With "airband_live" set in config, each channel also gets a
-    PulseAudio output, so the audio plays on the host's speakers
-    while it is being heard.
+    With "airband_live" set in config, every channel also feeds
+    one mixer whose PulseAudio output plays on the host's
+    speakers - a single mixed stream, the way a scanner sounds,
+    rather than one playback stream per channel (the per-channel
+    streams measurably sounded worse than the same audio in the
+    recorded clips).
 
     The squelch is an SNR threshold. rtl_airband's built-in default
     is strict enough to stay shut on a weak-signal indoor station,
@@ -993,8 +996,21 @@ class AirbandRunner(Runner):
                     clips_dir: Path) -> str:
         gain = (ctx.airband_gain if ctx.airband_gain is not None
                 else self.gain_default)
-        lines = [
-            "# written by siuti for one grant of the tuner",
+        lines = ["# written by siuti for one grant of the tuner"]
+        if ctx.airband_live:
+            lines += [
+                "mixers: {",
+                "  live: {",
+                "    outputs: (",
+                "      {",
+                '        type = "pulse";',
+                '        name = "siuti live";',
+                "      }",
+                "    );",
+                "  }",
+                "};",
+            ]
+        lines += [
             "devices:",
             "({",
             '  type = "rtlsdr";',
@@ -1025,8 +1041,8 @@ class AirbandRunner(Runner):
             if ctx.airband_live:
                 lines += [
                     "        {",
-                    '          type = "pulse";',
-                    f'          name = "siuti {channel["label"]}";',
+                    '          type = "mixer";',
+                    '          name = "live";',
                     "        }",
                 ]
             lines += ["      );", "    },"] 
@@ -1035,7 +1051,7 @@ class AirbandRunner(Runner):
 
     @staticmethod
     def parse_clip_name(name: str):
-        """(slug, started-local-datetime) for a transmission clip."""
+        """(slug, started-datetime-in-UTC) for a transmission clip."""
         match = _CLIP_RE.match(name)
         if not match:
             return None

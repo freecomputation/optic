@@ -262,7 +262,9 @@ def test_airband_config_names_every_channel_in_the_slice(tmp_path):
     live_ctx.airband_live = True
     live = runner.config_text(live_ctx, runner.channels_for(live_ctx),
                               tmp_path)
-    assert 'type = "pulse";' in live
+    assert live.count('type = "pulse";') == 1
+    assert 'type = "mixer";' in live
+    assert "mixers: {" in live
 
 
 def test_airband_clip_names_parse(tmp_path):
