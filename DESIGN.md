@@ -1,17 +1,17 @@
-# Optic - design
+# Palimpsest - design
 
-Optic is the total artificial system of Free Computation, and the
-name is a working part. In advanced computing an optic is a
-composable bidirectional accessor: one instrument whose two
-operations are view and update. You see the world through it, and
-you mold the world through the same instrument, and small optics
-compose into larger ones without changing hands. That is the
-system. Free Computation is who we are. Optic is what we are
+Palimpsest is the total artificial system of Free Computation, and the
+name is a working part. A palimpsest is a manuscript written
+over: the present text stands on the surface, and every earlier
+layer is preserved beneath it, legible in place. That is the
+system's shape exactly - every world is a chain of kept edits
+under its present documents, nothing erased, the whole history
+verifiable from the text itself. Free Computation is who we are. Palimpsest is what we are
 building.
 
-## The window manager - the-window
+## The window manager
 
-Optic is the window manager itself. It is not a window inside a
+Palimpsest is the window manager itself. It is not a window inside a
 desktop. It is the desktop.
 
 The desktop is one white field with a slight blue aura, behaving
@@ -28,27 +28,26 @@ again through the chain. Apply saves the current text through
 the chain as a kept edit. The window command serves this field
 locally and refuses a world that fails verification.
 
-The system prose uses explicit names that say what each part
-does. The codenames remain only as repo handles where an address
-is needed, because repo slugs are addresses and do not change.
+Each part carries one proper name, used everywhere - in prose,
+in code, and in the repository address alike.
 
-- the-window - Optic itself, the window manager and the desktop.
+- Palimpsest itself, the window manager and the desktop.
 
-- grow-system - idem, repo handle freecomputation/idem.
+- Fixity, freecomputation/fixity.
 
-- keep-files - Umiak, repo handle freecomputation/umiak.
+- Coffer, freecomputation/coffer.
 
-- Passband - Siuti, repo handle freecomputation/siuti.
+- Passband, freecomputation/passband.
 
-- carry-system - Pisuk, repo handle freecomputation/pisuk.
+- Propagule, freecomputation/propagule.
 
-- reflect-code - Tarraq, repo handle freecomputation/tarraq.
+- Quine, freecomputation/quine.
 
 ## The substance
 
 The system's substance is text. A computer's logical processes
 are, at bottom, text presented onto a screen, in a space where
-most people put pictures and art - so Optic works in the open,
+most people put pictures and art - so Palimpsest works in the open,
 in that substance. The text is not a file about the system. The
 text is the system: its state, its behavior, and its history are
 one readable, moldable document-world, and operating the system
@@ -57,7 +56,7 @@ is reshaping the text while it runs.
 Text is chosen for a hard reason. It is the only medium that is
 at once readable by a person, checkable by a machine, diffable,
 signable, and copyable into any other context without loss.
-Every guarantee Optic makes - receipts, hash chains, witnessed
+Every guarantee Palimpsest makes - receipts, hash chains, witnessed
 editions - is a guarantee text can keep and a picture cannot.
 
 ## The window
@@ -71,7 +70,7 @@ window cannot be governed by the person looking through it, so
 the window is not a view of the border. It is the border.
 
 The window is fully capable of graphics composition. Pictures in
-Optic are not attachments pasted over the text; they are
+Palimpsest are not attachments pasted over the text; they are
 compositions the window renders from the text - a chart is the
 ledger composed into columns, a scene is the store composed into
 an image. Every graphic can therefore be audited back to the
@@ -80,13 +79,13 @@ and regenerated identically on any host.
 
 ## The life
 
-Optic is an artificial system in the strong sense: it is made to
+Palimpsest is an artificial system in the strong sense: it is made to
 be mutated and molded, and its physics are already built,
-because they are idem's.
+because they are Fixity's.
 
 - Fuel is metabolism. The runner meters every run, so everything
 in the world has a cost, and costless sprawl is impossible.
-- The store is the environment, and Pisuk makes it an
+- The store is the environment, and Propagule makes it an
 archipelago: each host is an island, editions that cross between
 islands cross-pollinate, and island populations diverge the way
 living things do.
@@ -111,28 +110,28 @@ existed.
 
 ## The stack
 
-Optic is the total; its components are optics at deeper focus.
+Palimpsest is the total; its components stand under it.
 
-- grow-system - idem is the substrate: the grower, the broker,
+- Fixity is the substrate: the grower, the broker,
 the runner, the editions - the physics the world runs on, and
 its law that a system applied to itself must return itself.
-- keep-files - Umiak is the shelf: the world's cargo of books
+- Coffer is the shelf: the world's cargo of books
 and maps, carried aboard and fully usable with no connection.
-- Passband - Siuti is the ear: the world's sense for the
+- Passband is the ear: the world's sense for the
 signals around it.
-- carry-system - Pisuk is the harness: the world walking from
+- Propagule is the harness: the world walking from
 host to host, executed locally everywhere, identical everywhere.
-- reflect-code - Tarraq is the living layer: the evaluator that
-reflects on code and evaluates its own text.
+- Quine is the living layer: the evaluator that
+closes over its own text.
 
 ## The acceptance test
 
-Every layer of Optic must answer three questions, and a layer
-that cannot is not Optic yet: is this a view, is this an update,
+Every layer of Palimpsest must answer three questions, and a layer
+that cannot is not Palimpsest yet: is this a view, is this an update,
 and does it compose through the one window with the rest? Two
-older tests stand underneath it unchanged - idem's, that the
+older tests stand underneath it unchanged - Fixity's, that the
 system applied to itself returns itself bit for bit, and
-Pisuk's, that the same derivation from the same store gives the
+Propagule's, that the same derivation from the same store gives the
 same result and the same fuel on any two hosts.
 
 ## Build order
@@ -159,7 +158,7 @@ receipt and a gate.
 runs as a dial that exists later. Recommended as written in the
 build order.
 - Where the window lives first: the terminal is the honest first
-window, and Umiak's shell the second. Recommended in that order.
+window, and Coffer's shell the second. Recommended in that order.
 
 Nothing in this document is settled except the name, the
 substance, the window, and the acceptance test, which are

@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
-"""Optic component sync.
+"""Palimpsest component sync.
 
-Optic is the total system, and its components live in their own
-repositories - idem, umiak, siuti, pisuk. This tool mirrors each
-component's main branch into components/<name>/ inside the optic
-repository, so the total system always carries the latest landed
-code of its parts, and records what it carries in
+Palimpsest is the total system, and its components live in their
+own repositories - fixity, coffer, passband, propagule, quine.
+This tool mirrors each component's main branch into
+components/<name>/ inside the palimpsest repository, so the
+total system always carries the latest landed code of its
+parts, and records what it carries in
 components/MANIFEST.json: the upstream repository and the exact
 commit each mirror was taken from.
 
 Run it after any component lands a change, then land the refresh
-in optic the same way the component change was landed - branch,
+in palimpsest the same way the component change was landed - branch,
 pull request, merge, verify. The mirror is a copy, never an
 original: no edit is ever made under components/ by hand. To
 change a component, change its own repository and sync again.
@@ -23,7 +24,7 @@ from sources that are mirrored.
 
 Usage: python3 tools/sync.py [--cache DIR]
 The cache holds plain clones of the component repositories and
-defaults to ~/.cache/optic-sync; existing clones are pulled,
+defaults to ~/.cache/palimpsest-sync; existing clones are pulled,
 missing ones are cloned.
 """
 
@@ -36,7 +37,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ORG = "freecomputation"
-COMPONENTS = ["idem", "umiak", "siuti", "pisuk", "tarraq"]
+COMPONENTS = ["fixity", "coffer", "passband", "propagule", "quine"]
 
 
 def run(cmd, cwd=None):
@@ -75,15 +76,17 @@ def mirror(name, clone: Path, dest: Path):
 def main():
     args = sys.argv[1:]
     cache = Path(os.environ.get(
-        "OPTIC_SYNC_CACHE",
-        args[args.index("--cache") + 1] if "--cache" in args
-        else Path.home() / ".cache" / "optic-sync"))
+        "PALIMPSEST_SYNC_CACHE",
+        os.environ.get(
+            "OPTIC_SYNC_CACHE",
+            args[args.index("--cache") + 1] if "--cache" in args
+            else Path.home() / ".cache" / "palimpsest-sync")))
     root = Path(__file__).resolve().parent.parent
     comp_root = root / "components"
     comp_root.mkdir(exist_ok=True)
     cache.mkdir(parents=True, exist_ok=True)
 
-    manifest = {"format": "optic-components/0",
+    manifest = {"format": "palimpsest-components/0",
                 "synced_at": datetime.now(timezone.utc)
                 .strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "components": {}}
