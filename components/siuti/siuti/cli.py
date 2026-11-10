@@ -123,11 +123,16 @@ def cmd_run(args) -> int:
     store = _store(args)
     config = load_config(args.data_dir)
     plan = load_plan(find_plan(args.plan, args.data_dir))
+    announce = None
+    if not args.quiet:
+        def announce(line):
+            print(line, flush=True)
     scheduler = Scheduler(
         store,
         args.data_dir,
         simulate=args.simulate,
         config=config,
+        announce=announce,
     )
     if args.simulate:
         print("simulate mode: decoders replay recorded fixtures; "
@@ -349,6 +354,8 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--plan", default="weekday")
     run.add_argument("--once", action="store_true", help="one grant, then exit")
     run.add_argument("--simulate", action="store_true")
+    run.add_argument("--quiet", action="store_true",
+                     help="no live terminal lines; only the closing summary")
 
     listen = sub.add_parser("listen", help="run one decoder directly")
     listen.add_argument("decoder", choices=sorted(decoders_module.RUNNERS))

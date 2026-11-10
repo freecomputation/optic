@@ -44,6 +44,45 @@ PASS_FREQ_HZ = 137_620_000
 PASS_LEAD_SECONDS = 90
 
 
+def _freq_text(freq_hz) -> str:
+    hz = float(freq_hz or 0)
+    if hz >= 1_000_000:
+        return f"{hz / 1_000_000:g} MHz"
+    if hz >= 1_000:
+        return f"{hz / 1_000:g} kHz"
+    return f"{hz:g} Hz"
+
+
+def _event_line(event) -> str:
+    """One short terminal line for one event heard.
+
+    Who spoke (a flight, a hex, an emitter), then up to four payload
+    facts in the order the decoder recorded them. Enough to watch
+    the sky fill up; the store keeps the whole record.
+    """
+    stamp = (event.ts or "")[11:19] or "--:--:--"
+    who = (
+        event.payload.get("flight")
+        or event.payload.get("hex")
+        or event.emitter
+        or ""
+    )
+    facts = []
+    for key, value in event.payload.items():
+        if key in ("flight", "hex") or value is None:
+            continue
+        if isinstance(value, (str, int, float)) and not isinstance(value, bool):
+            facts.append(f"{key} {value}")
+        if len(facts) >= 4:
+            break
+    line = f"{stamp} {event.decoder} {event.mode}"
+    if who:
+        line += f" {who}"
+    if facts:
+        line += " - " + ", ".join(facts)
+    return line
+
+
 @dataclass
 class PlanBlock:
     decoder: str
@@ -194,6 +233,7 @@ class Scheduler:
         runner_factory=None,
         pass_provider=None,
         config: dict | None = None,
+        announce=None,
     ):
         self.store = store
         self.data_dir = Path(data_dir)
@@ -202,6 +242,7 @@ class Scheduler:
         self.sleeper = sleeper or time.sleep
         self.runner_factory = runner_factory or decoders_module.get_runner
         self.config = config or {}
+        self.announce = announce
         if pass_provider is None:
             pass_provider = make_pass_provider(self.config, self.data_dir)
         self.pass_provider = pass_provider
@@ -222,6 +263,24 @@ class Scheduler:
     def _emit(self, event) -> None:
         self.store.append(event)
         self.summary["events"] += 1
+        self._say(_event_line(event))
+
+    # -- the live terminal feed ------------------------------------------
+
+    def _say(self, line: str) -> None:
+        """One line to the person watching, if anyone is.
+
+        The scheduler is silent by default (libraries, tests); the CLI
+        passes a printer so a run in a terminal breathes out loud:
+        grants, skips, refusals and one short line per event heard.
+        A failing printer must never stop the listening.
+        """
+        if self.announce is None:
+            return
+        try:
+            self.announce(line)
+        except Exception:
+            pass
 
     # -- choice of listener ----------------------------------------------
 
@@ -266,6 +325,8 @@ class Scheduler:
         }
         self._log_grant(entry)
         self.summary["unavailable"] += 1
+        self._say(f"skip - {block.decoder} is not available on this host"
+                  + (f" ({hint})" if hint else ""))
 
     def _choose_block(self, plan: Plan, now: datetime) -> PlanBlock | None:
         candidates = [
@@ -331,8 +392,12 @@ class Scheduler:
             entry["refused"] = "edition failed verification: " + "; ".join(problems)
             self._log_grant(entry)
             self.summary["refused"] += 1
+            self._say(f"refused - {block.decoder}: its shelved edition "
+                      "failed verification")
             return
         self._log_grant(entry)
+        self._say(f"listening - {block.decoder} at "
+                  f"{_freq_text(block.freq_hz)} for {int(duration)}s ({reason})")
         runner = self.runner_factory(block.decoder)
         from .decoders import RunnerContext
 
