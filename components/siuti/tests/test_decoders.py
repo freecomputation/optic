@@ -265,6 +265,7 @@ def test_airband_config_names_every_channel_in_the_slice(tmp_path):
     assert live.count('type = "pulse";') == 1
     assert 'type = "mixer";' in live
     assert "mixers: {" in live
+    assert "stream_name" in live
 
 
 def test_airband_clip_names_parse(tmp_path):

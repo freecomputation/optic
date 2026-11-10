@@ -1004,7 +1004,7 @@ class AirbandRunner(Runner):
                 "    outputs: (",
                 "      {",
                 '        type = "pulse";',
-                '        name = "siuti live";',
+                '        stream_name = "siuti live";',
                 "      }",
                 "    );",
                 "  }",
@@ -1136,7 +1136,8 @@ class AirbandRunner(Runner):
         argv = [self.binary, "-F", "-e", "-c", str(config_path)]
         proc = subprocess.Popen(argv, stdout=subprocess.DEVNULL,
                                 stderr=subprocess.DEVNULL)
-        deadline = time.monotonic() + duration if duration else None
+        started = time.monotonic()
+        deadline = started + duration if duration else None
         emitted: set[str] = set()
         count = 0
 
@@ -1175,6 +1176,14 @@ class AirbandRunner(Runner):
         finally:
             self._stop_all([proc])
         sweep(final=True)
+        if count == 0 and time.monotonic() - started < 3.0:
+            # rtl_airband died at startup - a bad config or a busy
+            # device. Say so; a silent "ran" here once cost the
+            # owner a whole evening of listening to nothing.
+            return {"runner": self.name, "ran": False,
+                    "reason": ("rtl_airband exited at startup - bad "
+                               "config or the tuner is busy"),
+                    "events": 0}
         return {"runner": self.name, "ran": True, "events": count,
                 "channels": [int(ch["freq_hz"]) for ch in channels]}
 

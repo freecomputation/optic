@@ -1,6 +1,6 @@
 {
   "format": "optic-components/0",
-  "synced_at": "2026-11-10T18:26:01Z",
+  "synced_at": "2026-11-10T18:32:15Z",
   "components": {
     "idem": {
       "repo": "freecomputation/idem",
@@ -16,7 +16,7 @@
     },
     "siuti": {
       "repo": "freecomputation/siuti",
-      "commit": "92ccd0aa20e39e70aa47b4d6d2332177591a8417",
+      "commit": "669a81f3a618a6a8d45d45c87431d8838742e0a5",
       "files": 41,
       "excluded": []
     },
