@@ -1,7 +1,7 @@
-# Siuti - hear-signals - Design
+# Siuti - Passband - Design
 
-In the system prose of Optic, Siuti is hear-signals: it hears
-radio signals and records them as events. Siuti is the codename
+In the system prose of Optic, Siuti is Passband: the slice of
+spectrum a receiver admits and keeps. Siuti is the codename
 and the repo handle.
 
 *by Free Computation. License: AGPL-3.0. Status: design, pre-build. This document is the contract the first build answers to.*
