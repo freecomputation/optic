@@ -91,9 +91,11 @@ positions in later lines.
 
 Graphics are compositions from simple draw text. They are never
 attachments. Any other line is plain editor text and draws
-nothing. Drawn words render bold with a white halo, and the
-editor text carries a white halo of its own, so drawn shapes and
-typed text stay readable where they cross.
+nothing. Drawn words sit on a small white plaque with a hairline
+border in their own color, so they cover a clean patch of field
+instead of tangling with the typed text beneath, and the editor
+text carries a white halo of its own, so drawn shapes and typed
+text stay readable where they cross.
 
 A shape's place is negotiable on the screen: grab a shape with
 the mouse and drag it, and its draw line rewrites its own
