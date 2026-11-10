@@ -1058,7 +1058,9 @@ class AirbandRunner(Runner):
         )
         freq_hz = int(channel["freq_hz"]) if channel else self.freq(ctx)
         label = channel["label"] if channel else "airband"
-        ts = started.astimezone(timezone.utc).isoformat()
+        # rtl_airband names its clips in UTC, not local time - the
+        # first live runs proved it by landing six hours ahead.
+        ts = started.replace(tzinfo=timezone.utc).isoformat()
         return make_event(
             mode="voice",
             decoder=self.name,
@@ -1068,7 +1070,7 @@ class AirbandRunner(Runner):
                 "label": label,
                 "clip": str(path),
                 "bytes": path.stat().st_size,
-                "started_local": started.isoformat(),
+                "started_utc": started.isoformat(),
             },
             ts=ts,
         )

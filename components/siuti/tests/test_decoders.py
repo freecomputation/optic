@@ -294,3 +294,15 @@ def test_airband_squelch_threshold_written_and_overridable(tmp_path):
     ctx.airband_squelch_snr = 6.5
     text = runner.config_text(ctx, runner.channels_for(ctx), tmp_path)
     assert "squelch_snr_threshold = 6.5;" in text
+
+
+def test_airband_clip_event_time_is_the_filename_in_utc(tmp_path):
+    runner = AirbandRunner()
+    ctx = _airband_ctx(tmp_path, 121_200_000)
+    clip = tmp_path / "CH120550_20261110_180038.mp3"
+    clip.write_bytes(b"x" * 2048)
+    event = runner._clip_event(ctx, clip, runner.channels_for(ctx))
+    assert event is not None
+    assert event.ts == "2026-11-10T18:00:38+00:00"
+    assert event.freq_hz == 120_550_000
+    assert event.payload["label"] == "Atlanta Center - Montgomery RCAG"
