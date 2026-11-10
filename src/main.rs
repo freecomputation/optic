@@ -688,7 +688,7 @@ fn cmd_compose(world: &Path) {
     );
 }
 
-const FOUNDING_DESKTOP: &str = "the-window\n\nThe desktop is this text. Edit it and the field changes.\nGraphics are compositions from simple draw lines.\n\ncolor #3366cc\ndraw circle 200 160 60\ncolor #cc6633\ndraw rect 340 100 120 80\ncolor #222222\ndraw line 40 300 560 300\ndraw text 40 40 the desktop is text\nset r 40\ncolor #228844\ndraw circle 500 220 $r\n";
+const FOUNDING_DESKTOP: &str = "the-window\n\nThe desktop is this text. Edit it and the field changes.\nGraphics are compositions from simple draw lines.\n\ncolor #3366cc\ndraw circle 200 160 60\ncolor #cc6633\ndraw rect 340 100 120 80\ncolor #222222\ndraw line 40 300 560 300\ndraw text 40 345 the desktop is text\nset r 40\ncolor #228844\ndraw circle 500 220 $r\n";
 
 fn html_escape(text: &str) -> String {
     text.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;")
@@ -705,7 +705,7 @@ fn window_page(desktop_text: &str) -> String {
 html, body {{ margin: 0; padding: 0; height: 100%; background: #ffffff; }}
 #field {{ position: fixed; inset: 0; background: #ffffff; box-shadow: inset 0 0 120px rgba(80, 140, 255, 0.38), inset 0 0 24px rgba(80, 140, 255, 0.28); }}
 #canvas {{ position: absolute; inset: 0; width: 100%; height: 100%; }}
-#editor {{ position: absolute; inset: 0; width: 100%; height: 100%; box-sizing: border-box; padding: 18px 18px 64px 18px; border: 0; outline: none; resize: none; background: transparent; color: rgba(20, 20, 30, 0.88); font: 15px/1.5 monospace; }}
+#editor {{ position: absolute; inset: 0; width: 100%; height: 100%; box-sizing: border-box; padding: 18px 18px 64px 18px; border: 0; outline: none; resize: none; background: transparent; color: rgba(20, 20, 30, 0.92); font: 15px/1.5 monospace; text-shadow: 0 0 3px #ffffff, 0 0 3px #ffffff, 0 0 4px #ffffff, 0 0 4px #ffffff; }}
 #controls {{ position: fixed; left: 0; right: 0; bottom: 0; padding: 10px 14px; background: rgba(255,255,255,0.85); }}
 #controls button {{ font: 13px monospace; padding: 4px 12px; margin-right: 8px; }}
 </style>
@@ -722,8 +722,10 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 function resize() {{ canvas.width = window.innerWidth; canvas.height = window.innerHeight; render(); }}
 window.addEventListener("resize", resize);
+let shapes = [];
 function render() {{
   const vars = {{}};
+  shapes = [];
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.strokeStyle = "#222222"; ctx.fillStyle = "#222222"; ctx.lineWidth = 2;
   function num(tok) {{
@@ -731,7 +733,8 @@ function render() {{
     return parseFloat(tok) || 0;
   }}
   const lines = editor.value.split("\n");
-  for (const raw of lines) {{
+  for (let li = 0; li < lines.length; li++) {{
+    const raw = lines[li];
     const parts = raw.trim().split(/\s+/).filter(function (p) {{ return p.length > 0; }});
     if (parts.length === 0) continue;
     if (parts[0] === "set" && parts.length >= 3) {{ vars[parts[1]] = parseFloat(parts[2]) || 0; continue; }}
@@ -741,15 +744,85 @@ function render() {{
     const kind = parts[1];
     if (kind === "circle" && parts.length >= 5) {{
       ctx.beginPath(); ctx.arc(num(parts[2]), num(parts[3]), num(parts[4]), 0, Math.PI * 2); ctx.stroke();
+      shapes.push({{ line: li, kind: kind, parts: parts, x: num(parts[2]), y: num(parts[3]), r: num(parts[4]) }});
     }} else if (kind === "rect" && parts.length >= 6) {{
       ctx.strokeRect(num(parts[2]), num(parts[3]), num(parts[4]), num(parts[5]));
+      shapes.push({{ line: li, kind: kind, parts: parts, x: num(parts[2]), y: num(parts[3]), w: num(parts[4]), h: num(parts[5]) }});
     }} else if (kind === "line" && parts.length >= 6) {{
       ctx.beginPath(); ctx.moveTo(num(parts[2]), num(parts[3])); ctx.lineTo(num(parts[4]), num(parts[5])); ctx.stroke();
+      shapes.push({{ line: li, kind: kind, parts: parts, x: num(parts[2]), y: num(parts[3]), x2: num(parts[4]), y2: num(parts[5]) }});
     }} else if (kind === "text" && parts.length >= 5) {{
-      ctx.font = "16px monospace"; ctx.fillText(parts.slice(4).join(" "), num(parts[2]), num(parts[3]));
+      const label = parts.slice(4).join(" ");
+      const tx = num(parts[2]), ty = num(parts[3]);
+      ctx.font = "bold 20px monospace";
+      ctx.lineWidth = 5; ctx.strokeStyle = "#ffffff";
+      ctx.strokeText(label, tx, ty);
+      ctx.fillText(label, tx, ty);
+      ctx.lineWidth = 2;
+      shapes.push({{ line: li, kind: kind, parts: parts, x: tx, y: ty, w: ctx.measureText(label).width }});
     }}
   }}
 }}
+function plainNumber(tok) {{ return tok !== undefined && tok.charAt(0) !== "$" && !isNaN(parseFloat(tok)); }}
+function posTokens(shape) {{ return shape.kind === "line" ? [2, 3, 4, 5] : [2, 3]; }}
+function draggable(shape) {{ return posTokens(shape).every(function (i) {{ return plainNumber(shape.parts[i]); }}); }}
+function hitShape(shape, px, py) {{
+  const T = 7;
+  if (shape.kind === "circle") return Math.abs(Math.hypot(px - shape.x, py - shape.y) - shape.r) <= T;
+  if (shape.kind === "rect") {{
+    const inX = px >= shape.x - T && px <= shape.x + shape.w + T;
+    const inY = py >= shape.y - T && py <= shape.y + shape.h + T;
+    const nearX = Math.abs(px - shape.x) <= T || Math.abs(px - (shape.x + shape.w)) <= T;
+    const nearY = Math.abs(py - shape.y) <= T || Math.abs(py - (shape.y + shape.h)) <= T;
+    return (inX && nearY) || (inY && nearX);
+  }}
+  if (shape.kind === "line") {{
+    const dx = shape.x2 - shape.x, dy = shape.y2 - shape.y;
+    const len2 = dx * dx + dy * dy || 1;
+    let t = ((px - shape.x) * dx + (py - shape.y) * dy) / len2;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(px - (shape.x + t * dx), py - (shape.y + t * dy)) <= T;
+  }}
+  if (shape.kind === "text") return px >= shape.x - 2 && px <= shape.x + shape.w + 2 && py >= shape.y - 20 && py <= shape.y + 6;
+  return false;
+}}
+function shapeAt(px, py) {{
+  for (let i = shapes.length - 1; i >= 0; i--) {{
+    if (draggable(shapes[i]) && hitShape(shapes[i], px, py)) return shapes[i];
+  }}
+  return null;
+}}
+let dragState = null;
+editor.addEventListener("mousedown", function (ev) {{
+  const shape = shapeAt(ev.offsetX, ev.offsetY);
+  if (shape) dragState = {{ shape: shape, startX: ev.offsetX, startY: ev.offsetY, moved: false, orig: shape.parts.slice() }};
+}});
+editor.addEventListener("mousemove", function (ev) {{
+  if (!dragState) {{
+    editor.style.cursor = shapeAt(ev.offsetX, ev.offsetY) ? "grab" : "text";
+    return;
+  }}
+  const dx = ev.offsetX - dragState.startX, dy = ev.offsetY - dragState.startY;
+  if (!dragState.moved && Math.hypot(dx, dy) < 4) return;
+  dragState.moved = true;
+  ev.preventDefault();
+  editor.style.cursor = "grabbing";
+  const shape = dragState.shape;
+  const parts = dragState.orig.slice();
+  for (const i of posTokens(shape)) {{
+    const base = parseFloat(dragState.orig[i]) || 0;
+    parts[i] = String(Math.round(base + (i % 2 === 0 ? dx : dy)));
+  }}
+  const lines = editor.value.split("\n");
+  lines[shape.line] = parts.join(" ");
+  editor.value = lines.join("\n");
+  render();
+}});
+window.addEventListener("mouseup", function () {{
+  if (dragState && dragState.moved) editor.dispatchEvent(new Event("input"));
+  dragState = null;
+  editor.style.cursor = "text";
+}});
 editor.addEventListener("input", render);
 async function refresh() {{
   const res = await fetch("/api/text"); editor.value = await res.text(); render();

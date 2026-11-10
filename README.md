@@ -91,7 +91,14 @@ positions in later lines.
 
 Graphics are compositions from simple draw text. They are never
 attachments. Any other line is plain editor text and draws
-nothing.
+nothing. Drawn words render bold with a white halo, and the
+editor text carries a white halo of its own, so drawn shapes and
+typed text stay readable where they cross.
+
+A shape's place is negotiable on the screen: grab a shape with
+the mouse and drag it, and its draw line rewrites its own
+numbers to match. Shapes whose positions are written as $names
+are not draggable - negotiate those by editing the set line.
 
 Apply saves the editor text as desktop.txt through the chain, so
 the change is a kept edit. Refresh reloads the editor from the
