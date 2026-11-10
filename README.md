@@ -106,7 +106,9 @@ Apply saves the editor text as desktop.txt through the chain, so
 the change is a kept edit. Refresh reloads the editor from the
 chain, from GET /api/text. Reset returns to the founding
 document, applying the founding desktop text again through the
-chain. A world that fails verification is refused and not served.
+chain. The founding desktop is blank: the field starts empty,
+and everything on it is there because someone wrote it. A world
+that fails verification is refused and not served.
 
 ## The window, v0
 
