@@ -1,6 +1,6 @@
 {
   "format": "optic-components/0",
-  "synced_at": "2026-11-10T00:38:05Z",
+  "synced_at": "2026-11-10T01:36:27Z",
   "components": {
     "idem": {
       "repo": "freecomputation/idem",
@@ -28,8 +28,8 @@
     },
     "tarraq": {
       "repo": "freecomputation/tarraq",
-      "commit": "7d254c02884163bd20e4b54eed92db573a49743a",
-      "files": 2,
+      "commit": "59f7b2d649fedbc073ee19cad6c4c089adc3ca50",
+      "files": 13,
       "excluded": []
     }
   }

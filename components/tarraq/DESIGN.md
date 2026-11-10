@@ -74,8 +74,13 @@ sage bird - and the classics of the calculus reduce to their
 known values, deterministically, at a stated fuel cost.
 - Reflection, shown: the evaluator, evaluating its own source
 as a board document, runs a guest program to the same result
-and the same fuel as the bootstrap does. The system's double
-does the system's work, identically.
+as the bootstrap does. The fuel steps up once, from the
+bootstrap to the first interpreted layer, and then holds
+exactly: the evaluator a layer runs is structurally
+identical to the one that produced it, so layer two costs
+layer one's fuel to the unit. The system's double does the
+system's work, and the fixed point is the proof it is the
+same double.
 - The board persists: a board built up over many sessions,
 carried to a second host the way Pisuk carries a store,
 resumes with every cell's value intact and every pending
@@ -86,10 +91,12 @@ spent - without disturbing any other cell.
 
 ## Build order
 
-- L0, the seed: the metacircular evaluator as a grown Wasm
-component in the runner, its own source carried as a world
-document from the first day, proving the completeness tests
-against a bootstrap host evaluator.
+- L0, the seed: the metacircular evaluator as a document,
+carried in the world from the first day, proving the
+completeness tests against a bootstrap host evaluator - a
+Rust evaluator grown like the other tools, per the ruling
+below. (As built first: the host and the seed in one crate,
+the seed grown by recipe like the rest of the house.)
 - L1, the board: persistent cells in an Optic world, live
 values through the window, proposals for definitions, compost
 for dead cells.
