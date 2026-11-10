@@ -38,7 +38,7 @@ is needed, because repo slugs are addresses and do not change.
 
 - keep-files - Umiak, repo handle freecomputation/umiak.
 
-- hear-signals - Siuti, repo handle freecomputation/siuti.
+- Passband - Siuti, repo handle freecomputation/siuti.
 
 - carry-system - Pisuk, repo handle freecomputation/pisuk.
 
@@ -118,7 +118,7 @@ the runner, the editions - the physics the world runs on, and
 its law that a system applied to itself must return itself.
 - keep-files - Umiak is the shelf: the world's cargo of books
 and maps, carried aboard and fully usable with no connection.
-- hear-signals - Siuti is the ear: the world's sense for the
+- Passband - Siuti is the ear: the world's sense for the
 signals around it.
 - carry-system - Pisuk is the harness: the world walking from
 host to host, executed locally everywhere, identical everywhere.

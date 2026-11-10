@@ -54,7 +54,7 @@ substrate that grows the system from material aboard.
 - keep-files - Umiak, the repo handle freecomputation/umiak: the
 browser and shelf that keep files aboard and usable offline.
 
-- hear-signals - Siuti, the repo handle freecomputation/siuti:
+- Passband - Siuti, the repo handle freecomputation/siuti:
 the ear that hears radio signals and records them as events.
 
 - carry-system - Pisuk, the repo handle freecomputation/pisuk:

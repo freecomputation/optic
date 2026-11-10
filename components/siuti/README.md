@@ -12,9 +12,11 @@ passing, ships, sensors, pagers, the weather radio.
 Siuti is Inuktitut for ear, the organ of hearing. The design contract
 this code answers to is [DESIGN.md](DESIGN.md).
 
-In the system prose of Optic, Siuti is hear-signals. The explicit
-name says what it does: it hears radio signals and records what
-it hears as events. The codename Siuti remains the repo handle,
+In the system prose of Optic, Siuti is Passband. The proper name
+is the radio word for what a receiver does: a passband is the
+slice of spectrum a receiver admits and keeps, and this system
+is receive-only - it admits a slice of the air and keeps what it
+hears, as events. The codename Siuti remains the repo handle,
 at freecomputation/siuti, because a repo slug is an address.
 
 ## The laws, in short
