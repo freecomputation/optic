@@ -688,7 +688,7 @@ fn cmd_compose(world: &Path) {
     );
 }
 
-const FOUNDING_DESKTOP: &str = "the-window\n\nThe desktop is this text. Edit it and the field changes.\nGraphics are compositions from simple draw lines.\n\ncolor #3366cc\ndraw circle 200 160 60\ncolor #cc6633\ndraw rect 340 100 120 80\ncolor #222222\ndraw line 40 300 560 300\ndraw text 40 345 the desktop is text\nset r 40\ncolor #228844\ndraw circle 500 220 $r\n";
+const FOUNDING_DESKTOP: &str = "the-window\n\nThe desktop is this text. Edit it and the field changes.\nGraphics are compositions from simple draw lines.\n\ncolor #3366cc\ndraw circle 200 160 60\ncolor #cc6633\ndraw rect 340 100 120 80\ncolor #222222\ndraw line 40 300 560 300\ndraw text 40 385 the desktop is text\nset r 40\ncolor #228844\ndraw circle 500 220 $r\n";
 
 fn html_escape(text: &str) -> String {
     text.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;")
@@ -755,11 +755,16 @@ function render() {{
       const label = parts.slice(4).join(" ");
       const tx = num(parts[2]), ty = num(parts[3]);
       ctx.font = "bold 20px monospace";
-      ctx.lineWidth = 5; ctx.strokeStyle = "#ffffff";
-      ctx.strokeText(label, tx, ty);
+      const tw = ctx.measureText(label).width;
+      const ink = ctx.fillStyle;
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(tx - 6, ty - 22, tw + 12, 29);
+      ctx.lineWidth = 1; ctx.strokeStyle = ink;
+      ctx.strokeRect(tx - 6, ty - 22, tw + 12, 29);
+      ctx.fillStyle = ink;
       ctx.fillText(label, tx, ty);
       ctx.lineWidth = 2;
-      shapes.push({{ line: li, kind: kind, parts: parts, x: tx, y: ty, w: ctx.measureText(label).width }});
+      shapes.push({{ line: li, kind: kind, parts: parts, x: tx, y: ty, w: tw }});
     }}
   }}
 }}
@@ -783,7 +788,7 @@ function hitShape(shape, px, py) {{
     t = Math.max(0, Math.min(1, t));
     return Math.hypot(px - (shape.x + t * dx), py - (shape.y + t * dy)) <= T;
   }}
-  if (shape.kind === "text") return px >= shape.x - 2 && px <= shape.x + shape.w + 2 && py >= shape.y - 20 && py <= shape.y + 6;
+  if (shape.kind === "text") return px >= shape.x - 6 && px <= shape.x + shape.w + 6 && py >= shape.y - 22 && py <= shape.y + 7;
   return false;
 }}
 function shapeAt(px, py) {{
