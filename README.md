@@ -1,25 +1,27 @@
-# Optic
+# Palimpsest
 
-Optic is the total artificial system of Free Computation. The
+Palimpsest is the total artificial system of Free Computation. The
 design is in DESIGN.md. In one paragraph: the system's substance
 is text, it is viewed and molded through a single window, and
-the name is the computing term for exactly that - an optic, one
-composable instrument whose two operations are view and update.
+every world in it keeps its whole history as a chain of kept
+edits under the present text - which is what a palimpsest is, a
+manuscript written over with all its earlier layers preserved
+beneath, each still legible to whoever holds it.
 
 This repository is the total. The components live in their own
 repositories and are mirrored into components/ here, so the
 whole system can be read, carried, and grown in one place:
 
-- components/idem - grow-system: the substrate, the grower, the
-broker, the runner, the editions, from freecomputation/idem.
-- components/umiak - keep-files: the browser and its shelf, from
-freecomputation/umiak.
-- components/siuti - hear-signals: the signals ear, from
-freecomputation/siuti.
-- components/pisuk - carry-system: the walking harness, from
-freecomputation/pisuk.
-- components/tarraq - reflect-code: the self-reflecting
-evaluator, from freecomputation/tarraq.
+- components/fixity - Fixity: the substrate, the grower, the
+broker, the runner, the editions, from freecomputation/fixity.
+- components/coffer - Coffer: the browser and its shelf, from
+freecomputation/coffer.
+- components/passband - Passband: the listening system, from
+freecomputation/passband.
+- components/propagule - Propagule: the walking harness, from
+freecomputation/propagule.
+- components/quine - Quine: the self-closing evaluator, from
+freecomputation/quine.
 
 ## How the mirror stays current
 
@@ -28,7 +30,7 @@ repository and refreshes its mirror from that repository's main
 branch, then rewrites components/MANIFEST.json with the exact
 upstream commit each mirror was taken from. The standing rule of
 the house is that a component landing is not finished until the
-Optic refresh that carries it has landed here too, so this
+Palimpsest refresh that carries it has landed here too, so this
 repository moves whenever any of its parts move.
 
 The mirror is a copy, never an original. Nothing under
@@ -39,32 +41,32 @@ channels the mirror uses; the sync skips it and the manifest
 names it under "excluded", so every omission is a record rather
 than a silence.
 
-## The window manager - the-window
+## The window manager
 
-Optic is the window manager itself. It is not a window inside a
+Palimpsest is the window manager itself. It is not a window inside a
 desktop. It is the desktop.
 
-- the-window - Optic itself: the window manager and the desktop,
+- Palimpsest itself: the window manager and the desktop,
 one white field with a slight blue aura, behaving like a text
 editor.
 
-- grow-system - idem, the repo handle freecomputation/idem: the
+- Fixity, freecomputation/fixity: the
 substrate that grows the system from material aboard.
 
-- keep-files - Umiak, the repo handle freecomputation/umiak: the
-browser and shelf that keep files aboard and usable offline.
+- Coffer, freecomputation/coffer: the
+browser and shelf that keep books and documents aboard and usable offline.
 
-- Passband - Siuti, the repo handle freecomputation/siuti:
-the ear that hears radio signals and records them as events.
+- Passband, freecomputation/passband:
+the listening system that hears radio signals and records them as events.
 
-- carry-system - Pisuk, the repo handle freecomputation/pisuk:
-the harness that carries the system from host to host unchanged.
+- Propagule, freecomputation/propagule:
+the harness that carries sealed code from host to host unchanged.
 
-- reflect-code - Tarraq, the repo handle freecomputation/tarraq:
-the evaluator that reflects on code, evaluating its own text.
+- Quine, freecomputation/quine:
+the evaluator that closes over its own text.
 
 The desktop is one document, desktop.txt in a world. Run it with
-"optic window <world>" and open the local address it prints, by
+"palimpsest window <world>" and open the local address it prints, by
 default on port 27340. The surface is a full white field with a
 slight blue aura at the edges, a canvas, and the desktop text over
 it. Nothing else is on the surface except three plain controls at
@@ -112,13 +114,13 @@ that fails verification is refused and not served.
 
 ## The window, v0
 
-The optic binary is the single window. A world is a directory:
+The palimpsest binary is the single window. A world is a directory:
 docs/ holds the living documents as plain text, and chain.jsonl
 is the phylogeny - an append-only, hash-chained record of every
-edit, in the shape of idem's edition log. "optic seed" founds a
-world, "optic view" shows it, "optic update" molds a document
-with new text taken from stdin, "optic log" prints the verified
-phylogeny, and "optic compose" draws a picture composed from
+edit, in the shape of Fixity's edition log. "palimpsest seed" founds a
+world, "palimpsest view" shows it, "palimpsest update" molds a document
+with new text taken from stdin, "palimpsest log" prints the verified
+phylogeny, and "palimpsest compose" draws a picture composed from
 the chain's own numbers - bars of edit counts, graphics as a
 rendering of text, never an attachment.
 
@@ -135,21 +137,21 @@ that is viewed, molded, and chained.
 
 ## Directed evolution, v1
 
-Evolution in Optic is directed: nothing mutates behind the
-owner's back. "optic propose" files a mutation in the chain as
+Evolution in Palimpsest is directed: nothing mutates behind the
+owner's back. "palimpsest propose" files a mutation in the chain as
 a proposal - the proposed text stored by its hash under
-proposals/, the document itself untouched. "optic mutate" is
+proposals/, the document itself untouched. "palimpsest mutate" is
 the world proposing its own variation: one of three small
 operators (rotate the paragraphs, echo the first line, trim the
 last paragraph), chosen deterministically from the document's
 head hash and the chain head, so the same world always proposes
-the same mutation. "optic keep" applies a proposal as a kept
-edit that names the proposal it came from; "optic discard"
+the same mutation. "palimpsest keep" applies a proposal as a kept
+edit that names the proposal it came from; "palimpsest discard"
 refuses it, and the refusal stays in the chain as a fossil.
 Double resolution is refused. A proposal whose stored text has
 been touched outside the window cannot be kept.
 
-"optic graft" is the islands meeting: another world's documents
+"palimpsest graft" is the islands meeting: another world's documents
 are offered to this one as proposals, whole-document states
 through the same keep and discard gate - identical documents
 are noted and not offered. Cross-pollination therefore enters
@@ -164,11 +166,11 @@ re-hashed under new rules.
 
 ## Witnessed chains, v2
 
-A world's phylogeny can be co-signed, the way idem's edition
-log is. "optic keygen" writes an Ed25519 key in the house
-format (the loader also reads idem grower keys, so one key can
-witness both systems). "optic witness" signs the current chain
-head - the signed body is domain-separated, optic-witness, so
+A world's phylogeny can be co-signed, the way Fixity's edition
+log is. "palimpsest keygen" writes an Ed25519 key in the house
+format (the loader also reads Fixity grower keys, so one key can
+witness both systems). "palimpsest witness" signs the current chain
+head - the signed body is domain-separated, palimpsest-witness, so
 neither system's signatures can be replayed as the other's -
 and appends the witness as its own line in chain.jsonl, where
 it names exactly the head it stands over. Verification checks
