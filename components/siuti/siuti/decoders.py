@@ -57,6 +57,7 @@ class RunnerContext:
     airband_channels: list | None = None
     airband_live: bool = False
     airband_squelch_snr: float | None = None
+    airband_gain: int | None = None
     base_time: datetime | None = None
     _stamp_counter: int = field(default=0, repr=False)
 
@@ -960,6 +961,7 @@ class AirbandRunner(Runner):
     """
 
     squelch_snr_default = 3.0
+    gain_default = 45
 
     name = "airband"
     binary = "rtl_airband"
@@ -989,13 +991,15 @@ class AirbandRunner(Runner):
 
     def config_text(self, ctx: RunnerContext, channels: list[dict],
                     clips_dir: Path) -> str:
+        gain = (ctx.airband_gain if ctx.airband_gain is not None
+                else self.gain_default)
         lines = [
             "# written by siuti for one grant of the tuner",
             "devices:",
             "({",
             '  type = "rtlsdr";',
             "  index = 0;",
-            "  gain = 38;",
+            f"  gain = {gain};",
             f"  centerfreq = {_mhz(self.freq(ctx))};",
             "  channels:",
             "  (",

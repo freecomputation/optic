@@ -168,6 +168,7 @@ def cmd_listen(args) -> int:
         airband_channels=config.get("airband_channels"),
         airband_live=bool(config.get("airband_live", False)),
         airband_squelch_snr=config.get("airband_squelch_snr"),
+        airband_gain=config.get("airband_gain"),
         base_time=datetime.now(timezone.utc) if args.simulate else None,
     )
 
