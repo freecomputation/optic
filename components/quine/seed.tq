@@ -1,0 +1,183 @@
+; seed.tq - the evaluator, written in quine itself.
+;
+; This document is the machine. Loaded by the host evaluator,
+; it defines ev: a metacircular evaluator for the core forms -
+; quote, if, lambda, define, set!, begin, let - over the host's
+; primitives. The closing (quine close-eval) evaluates this
+; very text through ev, so the interpreted copy replaces the
+; host-loaded one, layer by layer, and the system runs its own
+; text.
+
+(define (self-evaluating? exp)
+  (cond ((number? exp) #t)
+        ((boolean? exp) #t)
+        ((string? exp) #t)
+        ((null? exp) #t)
+        (else #f)))
+
+(define (tagged? exp tag)
+  (if (pair? exp)
+      (eq? (car exp) tag)
+      #f))
+
+(define (ev exp env)
+  (cond ((self-evaluating? exp) exp)
+        ((symbol? exp) (lookup-variable exp env))
+        ((tagged? exp 'quote) (cadr exp))
+        ((tagged? exp 'if) (ev-if exp env))
+        ((tagged? exp 'lambda)
+         (list 'procedure (cadr exp) (cddr exp) env))
+        ((tagged? exp 'define) (ev-define exp env))
+        ((tagged? exp 'set!) (ev-set! exp env))
+        ((tagged? exp 'begin) (ev-sequence (cdr exp) env))
+        ((tagged? exp 'let) (ev (let->combination exp) env))
+        ((tagged? exp 'cond) (ev (cond->if exp) env))
+        ((pair? exp)
+         (ap (ev (car exp) env)
+             (list-of-values (cdr exp) env)))
+        (else (fail 'unreadable-expression))))
+
+(define (ap proc args)
+  (cond ((tagged? proc 'procedure)
+         (ev-sequence (caddr proc)
+                      (extend-environment (cadr proc)
+                                          args
+                                          (cadddr proc))))
+        (else (apply proc args))))
+
+(define (list-of-values exps env)
+  (if (null? exps)
+      '()
+      (cons (ev (car exps) env)
+            (list-of-values (cdr exps) env))))
+
+(define (ev-sequence exps env)
+  (cond ((null? exps) '())
+        ((null? (cdr exps)) (ev (car exps) env))
+        (else (ev (car exps) env)
+              (ev-sequence (cdr exps) env))))
+
+(define (ev-if exp env)
+  (if (ev (cadr exp) env)
+      (ev (caddr exp) env)
+      (if (null? (cdddr exp))
+          '()
+          (ev (cadddr exp) env))))
+
+(define (ev-define exp env)
+  (cond ((symbol? (cadr exp))
+         (define-variable! (cadr exp)
+                           (ev (caddr exp) env)
+                           env)
+         (cadr exp))
+        (else
+         (define-variable! (caadr exp)
+                           (list 'procedure
+                                 (cdadr exp)
+                                 (cddr exp)
+                                 env)
+                           env)
+         (caadr exp))))
+
+(define (ev-set! exp env)
+  (set-variable! (cadr exp) (ev (caddr exp) env) env)
+  (cadr exp))
+
+(define (let->combination exp)
+  (define bindings (cadr exp))
+  (cons (cons 'lambda
+              (cons (map car bindings)
+                    (cddr exp)))
+        (map cadr bindings)))
+
+(define (cond->if exp)
+  (expand-cond (cdr exp)))
+
+(define (expand-cond clauses)
+  (cond ((null? clauses) '())
+        ((eq? (caar clauses) 'else)
+         (make-begin (cdar clauses)))
+        (else
+         (list 'if
+               (caar clauses)
+               (make-begin (cdar clauses))
+               (expand-cond (cdr clauses))))))
+
+(define (make-begin seq)
+  (cond ((null? seq) '())
+        ((null? (cdr seq)) (car seq))
+        (else (cons 'begin seq))))
+
+; environments: a list of frames; a frame is (names . values)
+
+(define (first-frame env) (car env))
+(define (enclosing-environment env) (cdr env))
+(define (frame-names frame) (car frame))
+(define (frame-values frame) (cdr frame))
+(define (make-frame names values) (cons names values))
+
+(define (extend-environment names values base)
+  (cond ((= (length names) (length values))
+         (cons (make-frame names values) base))
+        (else (fail 'arity-mismatch))))
+
+(define (lookup-variable var env)
+  (cond ((null? env) (fail var))
+        (else (scan (frame-names (first-frame env))
+                    (frame-values (first-frame env))
+                    var
+                    env))))
+
+(define (scan names values var env)
+  (cond ((null? names)
+         (lookup-variable var (enclosing-environment env)))
+        ((eq? (car names) var) (car values))
+        (else (scan (cdr names) (cdr values) var env))))
+
+(define (set-variable! var val env)
+  (cond ((null? env) (fail var))
+        (else (scan-set (frame-names (first-frame env))
+                        (frame-values (first-frame env))
+                        var
+                        val
+                        env))))
+
+(define (scan-set names values var val env)
+  (cond ((null? names)
+         (set-variable! var val (enclosing-environment env)))
+        ((eq? (car names) var) (set-car! values val))
+        (else (scan-set (cdr names) (cdr values) var val env))))
+
+(define (define-variable! var val env)
+  (define frame (first-frame env))
+  (define (scan names values)
+    (cond ((null? names)
+           ; install the new frame in one mutation: prepending
+           ; to the names and the values in two steps would
+           ; leave the frame misaligned in between, and an
+           ; evaluator interpreting this very body looks its
+           ; operators up in that frame while it mutates it
+           (set-car! env (make-frame (cons var (frame-names frame))
+                                     (cons val (frame-values frame)))))
+          ((eq? (car names) var) (set-car! values val))
+          (else (scan (cdr names) (cdr values)))))
+  (scan (frame-names frame) (frame-values frame))
+  var)
+
+; the guest environment: the primitives in one frame, the
+; evaluator itself, and one more binding - the environment
+; names itself, so a program can hand its own world to the
+; evaluator it carries. When the closing loads this file's
+; text into the guest environment, define-variable! finds
+; these names already present and replaces their values in
+; place: the interpreted evaluator takes the host-loaded
+; one's seat.
+
+(define (setup-environment)
+  (define names (map car *primitives*))
+  (define values (map cdr *primitives*))
+  (define env
+    (list (make-frame (cons '*the-env* (cons 'ev (cons 'ap names)))
+                      (cons '() (cons ev (cons ap values))))))
+  (set-car! (frame-values (first-frame env)) env)
+  env)
