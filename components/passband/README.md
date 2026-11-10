@@ -87,7 +87,7 @@ For real listening, set your ground location once (passes need it):
 ```sh
 mkdir -p ~/.local/share/passband
 cat > ~/.local/share/passband/config.json <<'EOF'
-{"lat": 32.0, "lon": -86.0, "alt_m": 120}
+{"lat": 45.0, "lon": -100.0, "alt_m": 500}
 EOF
 passband run --plan weekday     # Ctrl-C stops; nothing is left running
 passband listen rtl_433 --seconds 300

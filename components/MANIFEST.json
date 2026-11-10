@@ -1,6 +1,6 @@
 {
   "format": "palimpsest-components/0",
-  "synced_at": "2026-11-10T22:15:37Z",
+  "synced_at": "2026-11-10T22:45:41Z",
   "components": {
     "fixity": {
       "repo": "freecomputation/fixity",
@@ -16,8 +16,8 @@
     },
     "passband": {
       "repo": "freecomputation/passband",
-      "commit": "922cfa1a864898ac454c42d10cc09fee873e229b",
-      "files": 41,
+      "commit": "e4760f7b6be2012647e3b21a579856405038b67c",
+      "files": 40,
       "excluded": []
     },
     "propagule": {

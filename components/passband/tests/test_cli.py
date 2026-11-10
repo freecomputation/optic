@@ -78,7 +78,7 @@ def test_passes_with_config_and_elements(data_dir, capsys):
     fixture = Path(__file__).resolve().parent.parent / "fixtures" / "tle.txt"
     (data_dir).mkdir(parents=True, exist_ok=True)
     (data_dir / "config.json").write_text(
-        json.dumps({"lat": 32.0, "lon": -86.0, "tle_file": str(fixture)})
+        json.dumps({"lat": 45.0, "lon": -100.0, "tle_file": str(fixture)})
     )
     assert run_cli(data_dir, "passes", "--hours", "96") == 0
     out = capsys.readouterr().out

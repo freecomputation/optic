@@ -15,7 +15,7 @@
 Everything runs locally against a data directory (default
 ~/.local/share/passband, override with --data-dir). Ground location and
 tuning for passes/snippets live in <data_dir>/config.json:
-{"lat": 32.0, "lon": -86.0, "alt_m": 120, "tle_file": null,
+{"lat": 45.0, "lon": -100.0, "alt_m": 500, "tle_file": null,
  "retention_days": 7, "cap_gib": 2, "hf_watch_dir": null}.
 
 --simulate runs the whole stack on a simulated tuner: decoders replay

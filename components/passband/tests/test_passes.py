@@ -41,7 +41,7 @@ def test_propagate_is_sane():
 
 def test_find_passes_over_a_known_location():
     sat = load()[0]
-    passes = find_passes(sat, 32.0, -86.0, sat.epoch, hours=48)
+    passes = find_passes(sat, 45.0, -100.0, sat.epoch, hours=48)
     assert len(passes) >= 1
     for passage in passes:
         assert passage.aos < passage.tca < passage.los
@@ -62,5 +62,5 @@ def test_accuracy_is_labelled():
     assert "approximate" in ACCURACY_NOTE
     assert "not SGP4" in ACCURACY_NOTE
     sat = load()[0]
-    passage = find_passes(sat, 32.0, -86.0, sat.epoch, hours=48)[0]
+    passage = find_passes(sat, 45.0, -100.0, sat.epoch, hours=48)[0]
     assert passage.to_dict()["accuracy"] == ACCURACY_NOTE
