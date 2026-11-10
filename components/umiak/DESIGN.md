@@ -1,4 +1,8 @@
-# Umiak - design determinations
+# Umiak - keep-files - design determinations
+
+In the system prose of Optic, Umiak is keep-files: the browser
+and shelf that keep files aboard and usable offline. Umiak is
+the codename and the repo handle.
 
 Determined 2026-11-09 by commissioned research over the whole design
 space, against the idem charter's laws. The full sourced report is the

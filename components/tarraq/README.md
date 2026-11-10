@@ -15,6 +15,12 @@ program inspecting and modifying itself. The name was already
 the definition. In the family: Siuti hears, Umiak carries,
 Pisuk walks. Tarraq reflects.
 
+In the system prose of Optic, Tarraq is reflect-code. The
+explicit name says what it does: it reflects on code, evaluating
+its own text and modifying itself in the open. The codename
+Tarraq remains the repo handle, at freecomputation/tarraq,
+because a repo slug is an address.
+
 ## The pieces
 
 - src/main.rs - the bootstrap host: a small evaluator for the

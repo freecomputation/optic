@@ -1,4 +1,8 @@
-# Pisuk - design
+# Pisuk - carry-system - design
+
+In the system prose of Optic, Pisuk is carry-system: it carries
+the system from host to host unchanged. Pisuk is the codename
+and the repo handle.
 
 Pisuk is the walking harness of Free Computation. Its name is the
 Inuktitut root pisuk-, "to be walking", and walking is what it
