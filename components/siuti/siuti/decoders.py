@@ -56,6 +56,7 @@ class RunnerContext:
     sat_pipeline: str | None = None
     airband_channels: list | None = None
     airband_live: bool = False
+    airband_squelch_snr: float | None = None
     base_time: datetime | None = None
     _stamp_counter: int = field(default=0, repr=False)
 
@@ -950,7 +951,15 @@ class AirbandRunner(Runner):
     With "airband_live" set in config, each channel also gets a
     PulseAudio output, so the audio plays on the host's speakers
     while it is being heard.
+
+    The squelch is an SNR threshold. rtl_airband's built-in default
+    is strict enough to stay shut on a weak-signal indoor station,
+    so the runner writes 3.0 dB unless "airband_squelch_snr" in
+    config says otherwise - low enough for a real carrier to open
+    it, high enough that plain noise mostly does not.
     """
+
+    squelch_snr_default = 3.0
 
     name = "airband"
     binary = "rtl_airband"
@@ -991,11 +1000,15 @@ class AirbandRunner(Runner):
             "  channels:",
             "  (",
         ]
+        squelch = (ctx.airband_squelch_snr
+                   if ctx.airband_squelch_snr is not None
+                   else self.squelch_snr_default)
         for channel in channels:
             freq_hz = int(channel["freq_hz"])
             lines += [
                 "    {",
                 f"      freq = {_mhz(freq_hz)};",
+                f"      squelch_snr_threshold = {squelch:.1f};",
                 "      outputs: (",
                 "        {",
                 '          type = "file";',
